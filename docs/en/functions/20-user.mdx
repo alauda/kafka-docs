@@ -1,0 +1,52 @@
+---
+weight: 20
+sourceSHA: 2f5cd4d2207cc35f0355a8660e67b1277bd3382cdbf9bd4139bc1da5b8b9290b
+---
+
+# User Management
+
+Please configure the Kafka users as needed.
+
+<Directive type="tip" title="Prerequisites">
+  A Kafka instance has been created and is running
+</Directive>
+
+## Steps to Operate
+
+<Tabs>
+  <Tab label="Web Console">
+    1. Click on **Kafka** in the left navigation bar.
+
+    2. Select the target namespace.
+
+    3. Click on the target instance name to enter the details page.
+
+    4. In the **User Management** tab, click on **Create User**.
+
+    5. Configure the parameters according to the following instructions:
+
+           <table border="">
+             <tr>
+               <th style={{width: '100px'}}>Parameter</th>
+               <th>Description</th>
+             </tr>
+
+             <tr>
+               <td><b>Authentication Method</b></td>
+               <td>Must be consistent with the authentication method of the Kafka instance. If the instance has multiple authentication methods, one can be selected as needed.</td>
+             </tr>
+
+             <tr>
+               <td><b>Permissions</b></td>
+               <td>Defines the user's access permissions to topics, consumers, transactions, and other resources.</td>
+             </tr>
+           </table>
+
+    6. Click on **Create**.
+  </Tab>
+</Tabs>
+
+<Directive type="info" title="Notes">
+  - User passwords or certificates are stored in a secure dictionary.
+  - It is recommended to regularly update passwords for users using SCRAM-SHA-512 authentication to enhance security.
+</Directive>

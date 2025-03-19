@@ -1,0 +1,36 @@
+---
+weight: 100
+sourceSHA: 639273210a0a6418f68f65f8d9816080810968d4977bd1a25e5496df7f6354e7
+---
+
+# Restart Instance
+
+If the instance encounters operational failures, too many connections, or other unknown issues that cannot be identified during its runtime, the problem can be addressed by restarting the instance.
+
+## Precautions
+
+During the restart process, Pods will be restarted one by one, which may cause a brief interruption to the business.
+
+## Prerequisites
+
+The instance must be in the **Running** state.
+
+**Note**:
+
+- If the instance is in the **Processing** state, it indicates that the instance may be starting normally; please wait patiently.
+
+- If the instance fails to start or is abnormal, meaning it is in the **Processing** or **Error** state, the instance will automatically restart after the health check times out; please wait patiently.
+
+## Operation Steps
+
+<Tabs>
+  <Tab label="Web Console">
+    1. In the left navigation bar, click **Kafka**.
+
+    2. Click on ***Namespace Name***.
+
+    3. Click on ***Instance Name***.
+
+    4. Click **Actions** > **Restart**, and confirm.
+  </Tab>
+</Tabs>

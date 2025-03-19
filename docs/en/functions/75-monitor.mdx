@@ -1,0 +1,71 @@
+---
+weight: 75
+sourceSHA: 882742f6ebc7798603481922f00e74aa0b1d5ee394226542ea0dc351b886bc98
+---
+
+# Monitoring and Alerts
+
+The monitoring data embedded in the Grafana panel can be used for Kafka monitoring and alerting from the perspectives of resources, performance, etc., and supports configuring notification policies.
+
+## Monitoring
+
+The platform defaults to collecting commonly used monitoring metrics related to Kafka resources, performance, and capacity. Real-time monitoring data for various metrics is provided on the **Monitoring** tab of the instance.
+
+<table border="">
+  <tr>
+    <th style={{width: '100px'}}>Category</th>
+    <th>Metric</th>
+  </tr>
+
+  <tr>
+    <td><b>Resource Monitoring</b></td>
+    <td>Memory usage, CPU usage, JVM memory usage, etc.</td>
+  </tr>
+
+  <tr>
+    <td><b>Performance Monitoring</b></td>
+    <td>Producer request rate, incoming message rate, etc.</td>
+  </tr>
+
+  <tr>
+    <td><b>Others</b></td>
+    <td>Log size, etc.</td>
+  </tr>
+</table>
+
+## Alerts
+
+The platform supports using the general alerting features. By navigating to the **Alerts > Alert Policies** page of the Container Platform, you can create the following alert policies corresponding to Kafka alerts.
+
+<table border="">
+  <tr>
+    <th style={{width: '120px'}}>Type</th>
+    <th>Monitoring Object</th>
+  </tr>
+
+  <tr>
+    <td><b>Metric Alert</b></td>
+    <td>Predefined resource metrics, applicable only at the Pods level, such as Pods' memory usage rate.</td>
+  </tr>
+
+  <tr>
+    <td><b>Log Alert</b></td>
+    <td>Kafka logs.</td>
+  </tr>
+
+  <tr>
+    <td><b>Event Alert</b></td>
+    <td>Event reasons, i.e., the reasons for the Kafka stateful replica set transitioning to its current state, such as: BackOff, Pulling, Failed.</td>
+  </tr>
+
+  <tr>
+    <td><b>Custom Alert</b></td>
+    <td>Kafka performance metrics.</td>
+  </tr>
+</table>
+
+**Configure Alert Policies**: To enable alerts, please create an alert policy in the Container Platform first. The alert policy describes the objects you wish to monitor, under what circumstances you wish to receive alerts, and how you want to be notified of related alerts.
+
+**Handle Alerts**: When the interface indicates that there are policies in an alert state, please address them promptly.
+
+**Bind Notification Policy**: In addition to viewing real-time notifications, the platform also supports sending alert information to relevant personnel via email, SMS, etc., notifying them to take necessary measures to resolve issues or prevent failures. The notification policy needs to be set in platform management.

@@ -1,0 +1,32 @@
+---
+weight: 50
+sourceSHA: c9ab3dd6a59e1928e5ab99fb296ee10e6ae1f81da380745f8df08bb8608729fb
+---
+
+# Update Scheduling Configuration
+
+When the node taints change, it supports adding, modifying, or deleting Pod tolerations. Updating the scheduling configuration will not affect the normal service availability.
+
+## Notes
+
+- Pod migration is not supported. After changing Pod tolerations, the selected nodes must include the nodes that existed before the update.
+
+- If you have configured node labels, the number of nodes matching Pod tolerations and node taints must be greater than or equal to the replica count. The updated available nodes must either remain the same as the original available nodes or add new nodes on top of the original available nodes for the scheduling configuration to update successfully.
+
+## Operation Steps
+
+<Tabs>
+  <Tab label="Web Console">
+    1. In the left navigation bar, click **Kafka**.
+
+    2. Click ***namespace name***.
+
+    3. Click ***instance name***.
+
+    4. Click **Actions** > **Update Scheduling Configuration** in the upper right corner.
+
+    5. Modify the configuration as needed.
+
+    6. Click **Update**.
+  </Tab>
+</Tabs>

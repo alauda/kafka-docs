@@ -1,0 +1,133 @@
+---
+weight: 40
+sourceSHA: d50f1af4dae9e3127d3a036d3427c7ca259fe6d7cc95109db2403dea8bd8ba9f
+---
+
+# Client File Configuration
+
+To ensure secure communication, please complete the configuration related to encrypted transmission on the Kafka client.
+
+## Notes
+
+The following operations should be performed on the **control node** within the cluster.
+
+## Required File Preview
+
+Prepare the files according to the authentication type of the Kafka instance. Each file corresponds one-to-one with the Kafka instance. If there are multiple instances, separate configurations for each file are required, and the related files can be placed in different paths. For scenarios involving access within the cluster, the client path is exemplified as `/home/kafka`.
+
+| Encryption Method       | Authentication Method         | Required Files                                                                |
+| ---------------------- | ---------------------------- | --------------------------------------------------------------------------- |
+| Within cluster: TLS<br />Outside cluster: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
+| Within cluster: TLS<br />Outside cluster: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
+
+## I. Configure CA Certificate
+
+1. Generate the CA certificate.
+
+   ```
+   $ kubectl -n {Kafka instance namespace} get secret {Kafka instance name}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+   ```
+2. Generate the password for the CA certificate. Please record this password.
+
+   ```
+   $ kubectl -n {Kafka instance namespace} get secret {Kafka instance name}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+   ```
+
+## II. User Certificate
+
+1. Generate the user certificate.
+
+   ```
+   $ kubectl -n {Kafka instance namespace} get secret {Kafka user name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+   ```
+
+2. Generate the password for the user certificate. Please record this password.
+
+   ```
+   $ kubectl -n {Kafka instance namespace} get secret {Kafka user name} -o jsonpath='{.data.user\.password}' | base64 -d
+   ```
+
+## III. Configure Client Configuration Files
+
+### client-ssl.properties (Without Authentication)
+
+#### Access within Cluster
+
+```
+$ cat << EOF > client-ssl.properties
+security.protocol=SSL
+ssl.truststore.type=PKCS12
+ssl.truststore.location=/home/kafka/ca.p12
+ssl.truststore.password={CA certificate password}
+EOF
+```
+
+### client.properties (For SCRAM-SHA-512 Authentication)
+
+**Prerequisite**: On the **User Management** tab, click on the secret dictionary and record the value of the **password** field.
+
+#### Access within Cluster
+
+```
+$ cat << EOF > client.properties
+security.protocol=SASL_SSL
+ssl.truststore.type=PKCS12
+ssl.truststore.location=/home/kafka/ca.p12
+ssl.truststore.password={CA certificate password}
+
+sasl.mechanism=SCRAM-SHA-512
+sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+    username="{Kafka user name}" \
+    password="{Kafka user password}";
+
+EOF
+```
+
+### client-ssl.properties (For TLS Authentication)
+
+#### Access within Cluster
+
+```
+$ cat << EOF > client-ssl.properties
+security.protocol=SSL
+ssl.truststore.type=PKCS12
+ssl.truststore.location={client path}/ca.p12
+ssl.truststore.password={CA certificate password}
+
+ssl.keystore.type=PKCS12
+ssl.keystore.location=/home/kafka/user.p12
+ssl.keystore.password={user certificate password}
+EOF
+```
+
+#### Access outside Cluster
+
+```
+$ cat << EOF > client-ssl.properties
+security.protocol=SSL
+ssl.truststore.type=PKCS12
+ssl.truststore.location={client path}/ca.p12
+ssl.truststore.password={CA certificate password}
+ssl.endpoint.identification.algorithm=
+
+ssl.keystore.type=PKCS12
+ssl.keystore.location={client path}/user.p12
+ssl.keystore.password={user certificate password}
+EOF
+```
+
+## IV. Copy Files to Client
+
+**Tip**: Please refer to the table in the required file preview to determine the necessary files for your method of access.
+
+**Access within Cluster**
+
+Ensure that the required files are placed in the paths mentioned in the client configuration files.
+
+```
+$ kubectl cp ./{required file name} {Kafka client namespace}/{Kafka client Pod name}:/home/kafka/ -c kafka
+```
+
+**Access outside Cluster**
+
+Ensure that the required files are placed in the paths mentioned in the client configuration files.

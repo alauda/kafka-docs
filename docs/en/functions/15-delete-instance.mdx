@@ -1,0 +1,51 @@
+---
+weight: 15
+sourceSHA: 70c88501332abae9aa88d068c7c74aa9ece79982835c92eebf384ff8eeb97b31
+---
+
+# Delete Instance
+
+Deleting an instance not only removes the created CR resources but also deletes the StatefulSet, ConfigMap, Secret, PersistentVolumeClaim, and other resources created by the Operator based on the CR resource.
+
+## Steps to Operate
+
+<Tabs>
+  <Tab label="CLI">
+    - If the instance is not enabled for persistence, or if you need to retain the instance's persistent data, execute the following command to delete the instance:
+
+    ```bash
+    # delete redis instance directly
+    kubectl -n default rdskafka <Instance Name>
+    ```
+
+    - If you want to delete the instance along with its persistent volume claim, execute the following commands:
+
+    ```bash
+    # patch finalizer `delete-pvc` to instance
+    kubectl -n default patch redis <Instance Name> --type='merge' -p '{"metadata": {"finalizers": ["delete-pvc"]}}'
+
+    # delete redis instance with pvc
+    kubectl -n default redis <Instance Name>
+    ```
+
+    > `delete-pvc` is a built-in keyword in the Redis Operator, used to instruct the operator to delete the persistent volume storage while deleting the instance.
+  </Tab>
+
+  <Tab label="Web Console">
+    1. Click on **Kafka** in the left navigation bar.
+
+    2. Click on ***namespace name***.
+
+    3. Select the instance to be deleted from the instance list and enter the instance detail page.
+
+    4. In the upper right corner of the **Instance Details** page, click the **Actions** button to expand the function menu.
+
+    5. Click on **Delete** in the function menu, and a confirmation dialog will pop up.
+
+    6. For instances with data persistence enabled, you can check "Delete Persistent Volume Claim" to release storage, or leave it unchecked to retain the data.
+
+    7. In the pop-up window, enter the name of the instance to be deleted.
+
+    8. Click **Delete**.
+  </Tab>
+</Tabs>

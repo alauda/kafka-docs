@@ -1,0 +1,65 @@
+---
+weight: 160
+sourceSHA: 9ca16f816677b1aff728fd56df66441a463faec436c425cc542bbf57d532f2f0
+---
+
+# Start and Stop Instances
+
+The one-click start and stop feature meets the daily development and operation maintenance needs, allowing you to quickly pause or resume middleware instances. In scenarios such as scheduled downtime, heavy node load, and development testing environments, you may need to temporarily release CPU and memory resources without deleting instances. The one-click start and stop feature helps you save resources and flexibly manage middleware instances, thereby reducing costs and improving efficiency.
+
+## Stopping Instances
+
+### Prerequisites
+
+1. The instance version is `2.5.0`, `2.7.0`, or `2.8.2`.
+2. The instance is in **Processing**, **Running**, **Abnormal**, or **Unknown** status.
+
+### Steps
+
+<Tabs>
+  <Tab label="Web Console">
+    **Tip**: It is recommended to perform a full backup before stopping the instance to prevent data loss.
+
+    1. Click **Kafka** in the left navigation bar.
+
+    2. Click ***Namespace Name***.
+
+    3. Click ***Instance Name***.
+
+    4. Click **Actions** > **Stop**, and confirm.
+  </Tab>
+</Tabs>
+
+### Functions Not Available After Stopping
+
+| Function          | Description                    |
+| ----------------- | ------------------------------ |
+| **Terminal Console**   | The terminal console cannot be used.        |
+| **Actions**      | Unable to restart, update, or update scheduling configuration. |
+| **Topology**     | Unable to view the topology page.            |
+| **Parameter Configuration** | Unable to update parameters and export parameters. |
+| **User Management**    | Unable to create users and view user details. |
+| **Topic Management** | Unable to create Topics and view Topic details. |
+| **Consumer Groups**    | Unable to view the consumer group page.      |
+| **Inspection**     | The inspection result for the current instance is invalid. |
+| **Access Method**  | Routing information may be unavailable.       |
+
+## Starting Instances
+
+### Prerequisites
+
+The instance is in **Stopping** or **Stopped** status.
+
+### Steps
+
+<Tabs>
+  <Tab label="Web Console">
+    1. Click **Kafka** in the left navigation bar.
+
+    2. Click ***Namespace Name***.
+
+    3. Click ***Instance Name***.
+
+    4. Click **Actions** > **Start**, and confirm.
+  </Tab>
+</Tabs>
