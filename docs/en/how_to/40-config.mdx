@@ -17,8 +17,8 @@ Prepare the files according to the authentication type of the Kafka instance. Ea
 
 | Encryption Method       | Authentication Method         | Required Files                                                                |
 | ---------------------- | ---------------------------- | --------------------------------------------------------------------------- |
-| Within cluster: TLS<br />Outside cluster: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
-| Within cluster: TLS<br />Outside cluster: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
+| Internal: TLS<br />External: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
+| Internal: TLS<br />External: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
 
 ## I. Configure CA Certificate
 
@@ -51,7 +51,6 @@ Prepare the files according to the authentication type of the Kafka instance. Ea
 
 ### client-ssl.properties (Without Authentication)
 
-#### Access within Cluster
 
 ```
 $ cat << EOF > client-ssl.properties
@@ -66,7 +65,6 @@ EOF
 
 **Prerequisite**: On the **User Management** tab, click on the secret dictionary and record the value of the **password** field.
 
-#### Access within Cluster
 
 ```
 $ cat << EOF > client.properties
@@ -85,7 +83,6 @@ EOF
 
 ### client-ssl.properties (For TLS Authentication)
 
-#### Access within Cluster
 
 ```
 $ cat << EOF > client-ssl.properties
@@ -99,28 +96,15 @@ ssl.keystore.location=/home/kafka/user.p12
 ssl.keystore.password={user certificate password}
 EOF
 ```
-
-#### Access outside Cluster
-
-```
-$ cat << EOF > client-ssl.properties
-security.protocol=SSL
-ssl.truststore.type=PKCS12
-ssl.truststore.location={client path}/ca.p12
-ssl.truststore.password={CA certificate password}
-ssl.endpoint.identification.algorithm=
-
-ssl.keystore.type=PKCS12
-ssl.keystore.location={client path}/user.p12
-ssl.keystore.password={user certificate password}
-EOF
-```
+:::tip
+集群外访问请在配置文件中增加`ssl.endpoint.identification.algorithm=`
+:::
 
 ## IV. Copy Files to Client
 
 **Tip**: Please refer to the table in the required file preview to determine the necessary files for your method of access.
 
-**Access within Cluster**
+**Internal Access**
 
 Ensure that the required files are placed in the paths mentioned in the client configuration files.
 
@@ -128,6 +112,6 @@ Ensure that the required files are placed in the paths mentioned in the client c
 $ kubectl cp ./{required file name} {Kafka client namespace}/{Kafka client Pod name}:/home/kafka/ -c kafka
 ```
 
-**Access outside Cluster**
+**External Access**
 
 Ensure that the required files are placed in the paths mentioned in the client configuration files.
