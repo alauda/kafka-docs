@@ -49,7 +49,6 @@ weight: 40
 
 ### client-ssl.properties （无认证）
 
-#### 集群内访问
 
 ```
 $ cat << EOF > client-ssl.properties
@@ -64,7 +63,6 @@ EOF
 
 **前提**：在 **用户管理** 页签，单击保密字典并记录其中 **password** 字段取值。
 
-#### 集群内访问
 
 ```
 $ cat << EOF > client.properties
@@ -83,7 +81,6 @@ EOF
 
 ### client-ssl.properties （用于 TLS 认证）
 
-#### 集群内访问
 
 ```
 $ cat << EOF > client-ssl.properties
@@ -98,7 +95,6 @@ ssl.keystore.password={用户证书密码}
 EOF
 ```
 
-#### 集群外访问
 
 ```
 $ cat << EOF > client-ssl.properties
@@ -106,13 +102,15 @@ security.protocol=SSL
 ssl.truststore.type=PKCS12
 ssl.truststore.location={客户端所在路径}/ca.p12
 ssl.truststore.password={CA 证书密码}
-ssl.endpoint.identification.algorithm=
 
 ssl.keystore.type=PKCS12
 ssl.keystore.location={客户端所在路径}/user.p12
 ssl.keystore.password={用户证书密码}
 EOF
 ```
+:::tip
+集群外配置文件中增加`ssl.endpoint.identification.algorithm=`
+:::
 
 ## 四、将文件拷贝至客户端
 
