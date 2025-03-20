@@ -14,21 +14,18 @@ Deleting an instance not only removes the created CR resources but also deletes 
     - If the instance is not enabled for persistence, or if you need to retain the instance's persistent data, execute the following command to delete the instance:
 
     ```bash
-    # delete redis instance directly
-    kubectl -n default rdskafka <Instance Name>
+    # delete kafka instance directly
+    kubectl delete -n default rdskafka <Instance Name>
     ```
-
     - If you want to delete the instance along with its persistent volume claim, execute the following commands:
 
     ```bash
-    # patch finalizer `delete-pvc` to instance
-    kubectl -n default patch redis <Instance Name> --type='merge' -p '{"metadata": {"finalizers": ["delete-pvc"]}}'
+    # delete kafka instance directly
+    kubectl delete -n default rdskafka <Instance Name>
 
-    # delete redis instance with pvc
-    kubectl -n default redis <Instance Name>
+    # patch delete pvc
+    kubectl delete -n default pvc -l strimzi.io/cluster=<Instance Name>,strimzi.io/kind=Kafka
     ```
-
-    > `delete-pvc` is a built-in keyword in the Redis Operator, used to instruct the operator to delete the persistent volume storage while deleting the instance.
   </Tab>
 
   <Tab label="Web Console">

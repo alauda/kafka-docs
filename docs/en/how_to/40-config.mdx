@@ -17,8 +17,8 @@ Prepare the files according to the authentication type of the Kafka instance. Ea
 
 | Encryption Method       | Authentication Method         | Required Files                                                                |
 | ---------------------- | ---------------------------- | --------------------------------------------------------------------------- |
-| Internal: TLS<br />External: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
-| Internal: TLS<br />External: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
+| Intra-cluster: TLS<br />External: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
+| Intra-cluster: TLS<br />External: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
 
 ## I. Configure CA Certificate
 
@@ -97,14 +97,14 @@ ssl.keystore.password={user certificate password}
 EOF
 ```
 :::tip
-集群外访问请在配置文件中增加`ssl.endpoint.identification.algorithm=`
+To enable external access, include ssl.endpoint.identification.algorithm= in the configuration file.
 :::
 
 ## IV. Copy Files to Client
 
 **Tip**: Please refer to the table in the required file preview to determine the necessary files for your method of access.
 
-**Internal Access**
+**Intra-cluster Access**
 
 Ensure that the required files are placed in the paths mentioned in the client configuration files.
 
