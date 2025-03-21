@@ -3,15 +3,9 @@ weight: 80
 sourceSHA: 18e65586de75e8f340cc21a372088310d9b2c6278da22d0328c0c44df17e6896
 ---
 
-# Log Query
+# Log
 
 Understand the logs generated during the instance's operation from the container level, such as Kafka error logs. Proper use of logs can help you quickly identify issues and address faults and exceptions.
-
-**Note**: To save disk space, the platform retains log records for a default duration of 7 days (up to a maximum of 30 days). The actual retention period can be set in the operation and maintenance center under **Logs** > **Policy Management**. If you need to keep the logs for a longer duration, please export them in a timely manner.
-
-## Prerequisites
-
-If the interface indicates no data, please deploy the **Log Collection Component** and ensure the component is running properly.
 
 ## Steps
 
@@ -19,20 +13,16 @@ If the interface indicates no data, please deploy the **Log Collection Component
 
 <Tabs>
   <Tab label="Web Console">
-    1. Click on **Redis** in the left navigation bar.
+    1. Click on **Kafka** in the left navigation bar.
 
     2. Click on the ***name of the namespace***.
 
     3. Click on the ***instance name***.
 
-    4. In the **Logs** tab, set the search criteria.
+    4. In the **Realtime Log** tab, set the search criteria.
 
        - To find logs of a specific Pods, such as a Kafka replica: select a Pods in the **Pods** section, then click **Search**.
 
-       - To find logs within a specific time range: select a time period in the **Time Range** section.
-
-    5. Wait a moment and view the results.
-
-    6. (Optional) Click ![](../assets/44buttonexport.png) to export the logs.
+    5. (Optional) Click <span style={{display: 'inline-block'}}>![](../assets/44buttonexport.png)</span> to export the logs.
   </Tab>
 </Tabs>

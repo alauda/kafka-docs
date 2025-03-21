@@ -42,8 +42,8 @@ weight: 40
 
 
 ```bash
-# 更新 s6 实例的哨兵节点配置
-kubectl -n default patch redis s6 --type=merge --patch='{"spec": {"sentinel": {"monitorConfig": {"down-after-milliseconds":"30000","failover-timeout":"180000","parallel-syncs":"1"}}}}'
+# 更新实例的配置
+kubectl -n <namespace> patch rdskafka my-cluster --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
 ```
 
 </Tab>

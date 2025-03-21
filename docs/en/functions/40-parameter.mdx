@@ -39,8 +39,8 @@ When creating a Kafka instance, the system parameter template is used by default
 <Tabs>
   <Tab label="CLI">
     ```bash
-    # Update the sentinel node configuration of the s6 instance
-    kubectl -n default patch redis s6 --type=merge --patch='{"spec": {"sentinel": {"monitorConfig": {"down-after-milliseconds":"30000","failover-timeout":"180000","parallel-syncs":"1"}}}}'
+    # Update the configuration of the instance
+    kubectl -n <namespace> patch rdskafka my-cluster --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
     ```
   </Tab>
 
