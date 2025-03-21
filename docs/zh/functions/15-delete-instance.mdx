@@ -15,20 +15,18 @@ weight: 15
 * 如果实例没有开启持久化，或者需要保留实例的持久化数据，执行以下命令来删除实例：
 
 ```bash
-# delete redis instance directly
-kubectl -n default rdskafka <Instance Name>
+# delete kafka instance directly
+kubectl delete -n default rdskafka <Instance Name>
 ```
-
 * 如果删除实例的同时，也要删除实例，可执行如下命令:
 
 ```bash
-# patch finalizer `delete-pvc` to instance
-kubectl -n default patch redis <Instance Name>--type='merge' -p '{"metadata": {"finalizers": ["delete-pvc"]}}'
+# delete kafka instance directly
+kubectl delete -n default rdskafka <Instance Name>
 
-# delete redis instance with pvc
-kubectl -n default redis <Instance Name>
+# patch delete pvc
+kubectl delete -n default pvc -l strimzi.io/cluster=<Instance Name>,strimzi.io/kind=Kafka
 ```
-> `delete-pvc` 是 redis operator 内置的关键词，用于告诉 operator 在删除实例的同时，删除持久卷存储。
 
 
 </Tab>
