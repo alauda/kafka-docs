@@ -1,0 +1,77 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.10.0
+  creationTimestamp: null
+  name: rdstopics.middleware.alauda.io
+spec:
+  group: middleware.alauda.io
+  names:
+    kind: RdsTopic
+    listKind: RdsTopicList
+    plural: rdstopics
+    singular: rdstopic
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: RdsTopic is the Schema for the rdstopics API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation
+              of an object. Servers should convert recognized schemas to the latest
+              internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this
+              object represents. Servers may infer this from the endpoint the client
+              submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RdsTopicSpec defines the desired state of RdsTopic
+            properties:
+              config:
+                additionalProperties:
+                  type: string
+                description: Config is a map of topic configuration properties
+                type: object
+              partitions:
+                description: Partitions is the number of partitions for the topic
+                format: int64
+                type: integer
+              replicas:
+                description: Replicas is the replication factor, number of replicas
+                  per partition
+                format: int64
+                type: integer
+              topicName:
+                description: TopicName is the name of the topic
+                type: string
+            type: object
+          status:
+            description: RdsTopicStatus defines the observed state of RdsTopic
+            properties:
+              lastUpdateTime:
+                format: date-time
+                type: string
+              phase:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state
+                  of cluster Important: Run "make" to regenerate code after modifying
+                  this file'
+                type: string
+              reason:
+                type: string
+              strimziKafkTopicaName:
+                type: string
+            required:
+            - lastUpdateTime
+            - phase
+            type: object
+        type: object
+    served: true
+    storage: true
