@@ -1,47 +1,39 @@
 ---
-weight: 40
+weight: 20
 i18n:
   title:
     en: Release Notes
 ---
 
-:::tip
+# Release Notes
 
-可以访问[发版说明示例](https://product-doc-guide.alauda.cn/template/release_notes/example.html)查看对应文档的示例。
+## v4.0.0
 
-:::
+### New and Optimized Features
 
-# 发版说明
+#### Component-Platform Decoupling
 
-## \<小版本号: 例如 2.0.0 \>
+Alauda Streaming Services for Kafka's lifecycle havs been decoupled from platform's, which means when customer needs a certain feature or a bug fix, Kafka team can release immediately instead of waiting for the platform release together.
 
-### 新增及优化功能
+#### Real-Time Logs on Component Details Page
 
-#### \<功能名称\>
-对新增或优化功能进行简单介绍。
+The logs on Kafka details page have been replaced with real-time logs that update instantly, facilitating troubleshooting and issue analysis.
 
+#### External Access via LoadBalancer for Kafka
 
-### 下线功能
+LoadBalancer access is now supported for Kafka. When creating an instance, users can choose to expose services externally through a LoadBalancer-type Service.
 
-#### \<功能名称\>
-对下线功能进行简单介绍，建议介绍下线原因以及替代方案。
+Compared to NodePort, LoadBalancer provides better high availability, performance, and supports standard port exposure. It is recommended to use the LoadBalancer method in production environments.
 
+`Limitations`
 
-### 即将下线功能
+When using LoadBalancer, ensure that the cluster has available external address pools. We recommend using MetalLB to create external address pools for the cluster.
 
-#### \<功能名称\>
-对即将下线功能进行简单介绍，建议介绍下线原因以及替代方案。
+### Fixed Issues
 
+{/* release-notes-for-bugs?template=mw-kafka-v4.0-fixed&project=Middleware */}
 
-### 修复问题
+### Known Issues
 
-修复问题列表可以通过文档框架提供的 `release-notes-for-bugs` 组件自动根据 JIRA 问题生成。
+{/* release-notes-for-bugs?template=mw-kafka-v4.0-known&project=Middleware */}
 
-使用方式参见 [自动生成发版问题列表指南](https://product-doc-guide.alauda.cn/guide/auto_gen_releasenotes.html)。
-
-
-### 已知问题
-
-和修复问题相同，通过文档框架提供的 `release-notes-for-bugs` 组件自动根据 JIRA 问题生成。
-
-使用方式参见 [自动生成发版问题列表指南](https://product-doc-guide.alauda.cn/guide/auto_gen_releasenotes.html)。
