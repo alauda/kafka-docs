@@ -98,12 +98,12 @@ At this point, the client and Kafka instance are located within the same busines
 
    - Generate CA certificate:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
      ```
 
    - Generate CA certificate password:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
      ```
 
 3. TLS protocol user and password certificate
@@ -112,12 +112,12 @@ At this point, the client and Kafka instance are located within the same busines
 
    - Generate user certificate:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
      ```
 
    - Generate user certificate password:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.password}' | base64 -d
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
      ```
 
 4. The client connection code example is as follows:
@@ -139,13 +139,13 @@ public class ExampleProducer {
 
         // Configure TLS/SSL properties
         kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n {Kafka Instance Namespace} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n {Kafka Instance Namespace} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
         kafkaProps.put("ssl.keystore.password", "************");
         // Internal access does not require configuration, configuration for enabling TLS on nodeport
         kafkaProps.put("ssl.endpoint.identification.algorithm", "");
@@ -222,12 +222,12 @@ At this point, the client and Kafka instance are located in different business c
 
    - Generate CA certificate:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
      ```
 
    - Generate CA certificate password:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
      ```
 
 4. The client connection code example is as follows:
@@ -281,12 +281,12 @@ At this point, the client and Kafka instance are located in different business c
 
    - Generate CA certificate:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
      ```
 
    - Generate CA certificate password:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka Instance Name}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
      ```
 
 3. TLS protocol user and password certificate
@@ -295,12 +295,12 @@ At this point, the client and Kafka instance are located in different business c
 
    - Generate user certificate:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
      ```
 
    - Generate user certificate password:
      ```
-     $ kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.password}' | base64 -d
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
      ```
 
 4. The client connection code example is as follows:
@@ -322,13 +322,13 @@ public class ExampleProducer {
 
         // Configure TLS/SSL properties
         kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n {Kafka Instance Namespace} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n {Kafka Instance Namespace} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n {Kafka Instance Namespace} get secret {Kafka User Name} -o jsonpath='{.data.user\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
         kafkaProps.put("ssl.keystore.password", "************");
         // Internal access does not require configuration, configuration for enabling TLS on nodeport
         kafkaProps.put("ssl.endpoint.identification.algorithm", "");

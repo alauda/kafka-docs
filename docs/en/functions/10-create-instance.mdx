@@ -168,7 +168,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
 After creating the instance, you can check the status of the instance using the following command:
 
 ```bash
-$ kubectl get rdskafka -n default -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
+$ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
 NAME         VERSION   STATUS   MESSAGE                                   CreationTimestamp
 my-cluster   3.8       Active   <none>                                    2025-03-06T08:46:57Z
 test38       3.8       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z

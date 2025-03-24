@@ -40,7 +40,7 @@ When creating a Kafka instance, the system parameter template is used by default
   <Tab label="CLI">
     ```bash
     # Update the configuration of the instance
-    kubectl -n <namespace> patch rdskafka my-cluster --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
+    kubectl -n <namespace> patch rdskafka <name> --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
     ```
   </Tab>
 

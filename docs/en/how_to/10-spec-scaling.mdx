@@ -21,7 +21,7 @@ As data volume grows, it is essential to expand capacity in a timely manner befo
 
     ```bash
     # Set the instance specifications to cpu:300m, memory: 300Mi
-    kubectl -n default patch rdskafka my-cluster --type=merge --patch='{"spec": {"resources":{"limits":{"cpu": "2","memory":"4Gi"},"requests":{"cpu":"2", "memory":"4Gi"}}}}'
+    kubectl -n <namespace> patch rdskafka <name> --type=merge --patch='{"spec": {"resources":{"limits":{"cpu": "2","memory":"4Gi"},"requests":{"cpu":"2", "memory":"4Gi"}}}}'
     ```
   </Tab>
   <Tab label="Web Console">
