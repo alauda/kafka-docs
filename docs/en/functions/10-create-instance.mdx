@@ -5,75 +5,14 @@ sourceSHA: b557b5c17f9f2289f8f0cd2f805a5c78740b7655ad2be58dcd3eb746b7e42fd0
 
 # Create Instance
 
-You can create a Kafka instance to achieve faster read and write speeds, along with scalable services that meet diverse and high availability requirements for your business.
+You can create a Kafka instance to build a high-throughput, low-latency real-time data pipeline to support the diverse needs of business systems in scenarios such as streaming data processing and service decoupling.
 
 ## Create Kafka Instance
 
-### Operation Steps
+### Steps
 
 <Tabs>
-  <Tab label="Web Console">
-    1. Click on **Kafka** in the left navigation bar.
-
-    2. Click on ***Namespace Name***.
-
-    3. Click on **Create Kafka Instance**.
-
-    4. Complete the relevant configurations with the following instructions.
-
-           <table border="">
-             <tr>
-               <th style={{width: '100px'}}>Configuration</th>
-               <th style={{width: '130px'}}>Configuration Items</th>
-               <th>Description</th>
-             </tr>
-
-             <tr>
-               <td><b>Parameter Configuration</b></td>
-               <td><b>Parameter Template</b></td>
-               <td>You can choose a system or custom parameter template. For custom parameter templates, please refer to <a href="/appservice/unified-om/para-template/custom-template">Parameter Template</a>.</td>
-             </tr>
-
-             <tr>
-               <td rowspan="2"><b>Kafka Nodes</b></td>
-               <td><b>Broker Node Count</b></td>
-               <td>To ensure high availability of the broker, each broker will be scheduled on different nodes in the cluster.</td>
-             </tr>
-
-             <tr>
-               <td><b>Storage Class</b></td>
-               <td>If no storage class is available in the drop-down list, please contact the platform administrator to add one.</td>
-             </tr>
-
-             <tr>
-               <td rowspan="2"><b>Cluster Access Method</b></td>
-               <td><b>Authentication Method</b></td>
-               <td>To ensure secure data transmission, it is recommended to enable encrypted authentication. For example: listening method as TLS, authentication method as SCRAM - SHA - 512.</td>
-             </tr>
-
-             <tr>
-               <td><b>Specify Host Port</b></td>
-               <td>After enabling the specified host port, you can specify the service port number. <br /><b>Note</b>: When updating the instance, the ports are not interchangeable. If you need to swap ports, you can first update to another unoccupied port and then re-specify.</td>
-             </tr>
-
-             <tr>
-               <td rowspan="2"><b>Scheduling Configuration</b></td>
-               <td><b>Node Label</b></td>
-               <td>Filter available nodes in the current cluster by labels. Pods will be scheduled on available nodes. <br /><b>Note</b>: After the instance is created, this configuration is no longer allowed to be modified.</td>
-             </tr>
-
-             <tr>
-               <td><b>Pod Tolerations</b></td>
-               <td>If available nodes are tainted, only Pods that have set tolerations will tolerate these taints and may be scheduled on nodes that match the Pod tolerations and node taints. The matching rules are as follows. <ul><li><b>Equal</b>: When the <i>key</i>, <i>value</i>, <i>effect</i> of the Pod toleration completely matches the values set in the node taint, the Pod will tolerate the node taint. </li><li><b>Exists</b>: When the <i>key</i>, <i>effect</i> of the Pod toleration matches the values in the node taint, the Pod will tolerate the node taint. </li></ul> <br /><b>Description</b>: The effect determines whether Pods that do not tolerate node taints will be assigned to nodes that have those taints. For example, an effect of NoExecute indicates that only pods that tolerate the taints (including Pods from this Kafka instance) can be scheduled, and will evict Pods that are already running on that node but do not tolerate the taints (from other instances). For more information on matching rules, refer to the <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/">Kubernetes Official Documentation</a>.</td>
-             </tr>
-           </table>
-
-    5. Click on **Create**.
-
-       When the instance status changes to **Running**, the instance has been created successfully.
-  </Tab>
-
-  <Tab label="CLI">
+<Tab label="CLI">
     Create a Kafka instance via CLI:
 
     ```bash
@@ -164,12 +103,72 @@ You can create a Kafka instance to achieve faster read and write speeds, along w
     EOF
     ```
   </Tab>
+  <Tab label="Web Console">
+    1. Click on **Kafka** in the left navigation bar.
+
+    2. Click on ***Namespace Name***.
+
+    3. Click on **Create Kafka Instance**.
+
+    4. Complete the relevant configurations with the following instructions.
+
+           <table border="">
+             <tr>
+               <th style={{width: '100px'}}>Configuration</th>
+               <th style={{width: '130px'}}>Configuration Items</th>
+               <th>Description</th>
+             </tr>
+
+             <tr>
+               <td><b>Parameter Configuration</b></td>
+               <td><b>Parameter Template</b></td>
+               <td>You can choose a system or custom parameter template. For custom parameter templates, please refer to <a href="/appservice/unified-om/para-template/custom-template">Parameter Template</a>.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Kafka Nodes</b></td>
+               <td><b>Broker Node Count</b></td>
+               <td>To ensure high availability of the broker, each broker will be scheduled on different nodes in the cluster.</td>
+             </tr>
+
+             <tr>
+               <td><b>Storage Class</b></td>
+               <td>If no storage class is available in the drop-down list, please contact the platform administrator to add one.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Access Method</b></td>
+               <td><b>Authentication Method</b></td>
+               <td>To ensure secure data transmission, it is recommended to enable encrypted authentication. For example: listening method as TLS, authentication method as SCRAM - SHA - 512.</td>
+             </tr>
+
+             <tr>
+               <td><b>Specify Host Port</b></td>
+               <td>When you use NodePort to access the cluster and open the specified host port, you can specify the service port number. <br /><b>Note</b>: When updating the instance, the ports are not interchangeable. If you need to swap ports, you can first update to another unoccupied port and then re-specify.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Scheduling Configuration</b></td>
+               <td><b>Node Label</b></td>
+               <td>Filter available nodes in the current cluster by labels. Pods will be scheduled on available nodes. <br /><b>Note</b>: After the instance is created, this configuration is no longer allowed to be modified.</td>
+             </tr>
+
+             <tr>
+               <td><b>Pod Tolerations</b></td>
+               <td>If available nodes are tainted, only Pods that have set tolerations will tolerate these taints and may be scheduled on nodes that match the Pod tolerations and node taints. The matching rules are as follows. <ul><li><b>Equal</b>: When the <i>key</i>, <i>value</i>, <i>effect</i> of the Pod toleration completely matches the values set in the node taint, the Pod will tolerate the node taint. </li><li><b>Exists</b>: When the <i>key</i>, <i>effect</i> of the Pod toleration matches the values in the node taint, the Pod will tolerate the node taint. </li></ul> <br /><b>Description</b>: The effect determines whether Pods that do not tolerate node taints will be assigned to nodes that have those taints. For example, an effect of NoExecute indicates that only pods that tolerate the taints (including Pods from this Kafka instance) can be scheduled, and will evict Pods that are already running on that node but do not tolerate the taints (from other instances). For more information on matching rules, refer to the <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/">Kubernetes Official Documentation</a>.</td>
+             </tr>
+           </table>
+
+    5. Click on **Create**.
+
+       When the instance status changes to **Running**, the instance has been created successfully.
+  </Tab>
 </Tabs>
 
 After creating the instance, you can check the status of the instance using the following command:
 
 ```bash
-$ kubectl get rdskafka -n default -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
+$ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
 NAME         VERSION   STATUS   MESSAGE                                   CreationTimestamp
 my-cluster   3.8       Active   <none>                                    2025-03-06T08:46:57Z
 test38       3.8       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
