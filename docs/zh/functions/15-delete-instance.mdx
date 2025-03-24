@@ -16,16 +16,16 @@ weight: 15
 
 ```bash
 # delete kafka instance directly
-kubectl delete -n default rdskafka <Instance Name>
+kubectl delete -n <namespace>  rdskafka <name> 
 ```
 * 如果删除实例的同时，也要删除实例，可执行如下命令:
 
 ```bash
 # delete kafka instance directly
-kubectl delete -n default rdskafka <Instance Name>
+kubectl delete -n <namespace>  rdskafka <name> 
 
 # patch delete pvc
-kubectl delete -n default pvc -l strimzi.io/cluster=<Instance Name>,strimzi.io/kind=Kafka
+kubectl delete -n <namespace>  pvc -l strimzi.io/cluster=<name> ,strimzi.io/kind=Kafka
 ```
 
 

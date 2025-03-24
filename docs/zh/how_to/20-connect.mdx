@@ -99,12 +99,12 @@ public class ExampleProducer {
 
     * 生成 CA 证书：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         ```
 
     * 生成 CA 证书的密码
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         ```
 
 3. TLS 协议的用户及密码证书
@@ -113,12 +113,12 @@ public class ExampleProducer {
 
     * 生成用户证书：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        $ kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         ```
 
     * 生成用户证书的密码：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.password}' | base64 -d
+        $ kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.password}' | base64 -d
         ```
 
 4、客户端连接代码示例如下：
@@ -142,13 +142,13 @@ public class ExampleProducer {
 
         // Configure TLS/SSL properties
         kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        // kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.password}' | base64 -d
         kafkaProps.put("ssl.keystore.password", "************");
         // 集群内访问无需配置，针对nodeport开启tls时配置
         kafkaProps.put("ssl.endpoint.identification.algorithm", "");
@@ -227,12 +227,12 @@ public class ExampleProducer {
 
     * 生成 CA 证书：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         ```
 
     * 生成 CA 证书的密码
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         ```
 
 4. 客户端连接代码示例如下：
@@ -288,12 +288,12 @@ public class ExampleProducer {
 
     * 生成 CA 证书：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         ```
 
     * 生成 CA 证书的密码
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 实例名称}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         ```
 
 3. TLS 协议的用户及密码证书
@@ -302,12 +302,12 @@ public class ExampleProducer {
 
     * 生成用户证书：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        $ kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         ```
 
     * 生成用户证书的密码：
         ```
-        $ kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.password}' | base64 -d
+        $ kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.password}' | base64 -d
         ```
 
 4. 客户端连接代码示例如下：
@@ -331,13 +331,13 @@ public class ExampleProducer {
 
         // Configure TLS/SSL properties
         kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
         kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {KafkaClusterName}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
         kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        // kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
         kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n {Kafka 实例所在命名空间} get secret {Kafka 用户名称} -o jsonpath='{.data.user\.password}' | base64 -d
+        // kubectl -n <namespace> get secret <Kafka 用户名称> -o jsonpath='{.data.user\.password}' | base64 -d
         kafkaProps.put("ssl.keystore.password", "************");
         // 集群内访问无需配置，针对nodeport开启tls时配置
         kafkaProps.put("ssl.endpoint.identification.algorithm", "");

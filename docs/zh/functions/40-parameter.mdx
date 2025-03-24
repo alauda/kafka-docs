@@ -34,7 +34,7 @@ weight: 40
 
 </Directive>
 
-## 操作步骤
+## 步骤
 
 <Tabs>
 
@@ -43,7 +43,7 @@ weight: 40
 
 ```bash
 # 更新实例的配置
-kubectl -n <namespace> patch rdskafka my-cluster --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
+kubectl -n <namespace> patch rdskafka <name> --type=merge --patch='{"spec": {"config": {"auto.create.topics.enable":"true"}}}'
 ```
 
 </Tab>
