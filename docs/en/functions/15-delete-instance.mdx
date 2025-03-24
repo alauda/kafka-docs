@@ -15,16 +15,16 @@ Deleting an instance not only removes the created CR resources but also deletes 
 
     ```bash
     # delete kafka instance directly
-    kubectl delete -n default rdskafka <Instance Name>
+    kubectl delete -n <namespace> rdskafka <name>
     ```
     - If you want to delete the instance along with its persistent volume claim, execute the following commands:
 
     ```bash
     # delete kafka instance directly
-    kubectl delete -n default rdskafka <Instance Name>
+    kubectl delete -n <namespace> rdskafka <name>
 
     # patch delete pvc
-    kubectl delete -n default pvc -l strimzi.io/cluster=<Instance Name>,strimzi.io/kind=Kafka
+    kubectl delete -n <namespace> pvc -l strimzi.io/cluster=<name>,strimzi.io/kind=Kafka
     ```
   </Tab>
 

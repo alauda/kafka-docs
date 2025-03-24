@@ -17,11 +17,8 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
 
 ### Core Features
 
-1. **zk Deployment Mode Support**
-
-   | Mode        | Applicable Scenarios             | Core Advantages                                                          |
-   | --------- | ----------------------------- | --------------------------------------------------------------------- |
-   | ZooKeeper | Suitable for various sizes of production and non-production environments | ZooKeeper maintains metadata information for the Kafka cluster, including node status, topic partition allocation, etc., ensuring stable operation and coordination of the cluster. |
+1. **Zookeeper Mode Support**
+   ZooKeeper maintains metadata information for the Kafka cluster, including node status, topic partition allocation, etc., ensuring stable operation and coordination of the cluster.Suitable for various sizes of production and non-production environments.
 
 2. **Version Compatibility**
    - Supports multiple mainstream versions such as Kafka 2.5.0, 2.7.0, 2.8.2, and 3.8. Users can choose an appropriate Kafka version based on their business needs and technology stack, accommodating both traditional businesses with high stability requirements and innovative projects seeking new features.
@@ -35,10 +32,10 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
    - Fully compatible with both IPv4 and IPv6 network environments, adapting to different network scenarios, and ensuring stable operation in environments primarily using traditional IPv4 networks and those transitioning to IPv6 architectures.
 
 5. **Elastic Scaling**
-   - Supports online horizontal scaling, dynamically adding or removing Kafka Broker nodes without service interruption to meet the changing business demands. For example, nodes can be added during peak business periods to enhance cluster processing capacity, while nodes can be reduced during lulls to save resources.
+   - Supports online horizontal scaling, dynamically adding Kafka Broker nodes without service interruption to meet the changing business demands. For example, nodes can be added during peak business periods to enhance cluster processing capacity.
    - Supports vertical resource adjustments, flexibly modifying CPU, memory, and other resource configurations of Kafka Broker nodes based on actual load conditions to optimize resource utilization.
 
-6. **Version Upgrade and High Availability**
+6. **Upgrade and High Availability**
    - Provides a smooth version upgrade mechanism, ensuring uninterrupted service and no data loss during Kafka version upgrades through strategies like gradually replacing nodes, maintaining business continuity.
    - Utilizes a multi-replica mechanism to replicate data across multiple nodes, allowing automatic failover to other replicas when a node fails, ensuring high availability in production environments.
 
@@ -48,7 +45,6 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
 8. **Automated Operation and Maintenance Capabilities**
    - **Rolling Scaling**: During scaling operations, a rolling method is used to gradually adjust the number of Kafka Broker nodes while automatically handling data redistribution and load balancing to ensure normal cluster operation and data consistency throughout the process.
    - **Zero-Downtime Upgrades**: When upgrading Kafka versions or changing configurations, individual nodes are updated sequentially, synchronizing data and verifying the operating status of new nodes to maintain service continuity and avoid impacting business operations.
-   - **Configuration Hot Update**: Users only need to modify the relevant ConfigMap configuration files, and the system will automatically inject the new configuration into the Kafka instance without needing to restart the Kafka service, achieving dynamic configuration updates and improving operation efficiency.
 
 ## Why Choose Alauda Streaming Service for Kafka
 
