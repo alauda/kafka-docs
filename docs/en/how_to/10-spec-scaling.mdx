@@ -13,9 +13,17 @@ As data volume grows, it is essential to expand capacity in a timely manner befo
 2. It is recommended to scale all nodes to the same specification, as expanding the storage capacity of a single Broker can lead to storage imbalance. The storage capacity on the expanded Broker may be overused, while the storage capacity on other Brokers may not be fully utilized. In this case, it may be necessary to migrate existing data to achieve a balanced distribution across the new storage space. This means that some data may need to be migrated from the original Broker to the expanded Broker, introducing complexity and additional operations for data migration. To avoid these issues, it is advisable to keep the storage capacity of Brokers equal or as close as possible when expanding the Kafka cluster. This will enable a balanced distribution of data and load, enhancing the performance and reliability of the cluster.
 3. When changing CPU and memory resources, please evaluate based on business requirements and resource availability to avoid expansion failures due to resources being either too small or too large, which may prevent the instance from being started normally.
 
-## Operation Steps
+## Steps
 
 <Tabs>
+  <Tab label="CLI">
+    To change the instance specifications, you can control it through the field `spec.resources`.
+
+    ```bash
+    # Set the instance specifications to cpu:300m, memory: 300Mi
+    kubectl -n default patch rdskafka my-cluster --type=merge --patch='{"spec": {"resources":{"limits":{"cpu": "2","memory":"4Gi"},"requests":{"cpu":"2", "memory":"4Gi"}}}}'
+    ```
+  </Tab>
   <Tab label="Web Console">
     1. In the left navigation bar, click **Kafka**.
 
@@ -28,15 +36,6 @@ As data volume grows, it is essential to expand capacity in a timely manner befo
     5. Fill in the desired number of replicas and new specifications for the corresponding resources.
 
     6. Click **Update**.
-  </Tab>
-
-  <Tab label="CLI">
-    To change the instance specifications, you can control it through the field `spec.resources`.
-
-    ```bash
-    # Set the instance specifications to cpu:300m, memory: 300Mi
-    kubectl -n default patch rdskafka my-cluster --type=merge --patch='{"spec": {"resources":{"limits":{"cpu": "2","memory":"4Gi"},"requests":{"cpu":"2", "memory":"4Gi"}}}}'
-    ```
   </Tab>
 </Tabs>
 
