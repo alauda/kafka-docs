@@ -1,172 +1,172 @@
 ---
 weight: 10
+sourceSHA: 4c2f798b99bed41a3a52d7038af67ecd241e2efe21c96c5f3305dfc2a44e9cad
 ---
 
 # 创建实例
 
-您可以创建一个 Kafka 实例来构建高吞吐、低延时的实时数据管道，支撑业务系统在流数据处理、服务解耦等场景的多样化需求。
+您可以创建一个 Kafka 实例，以建立一个高吞吐量、低延迟的实时数据管道，以支持在流数据处理和服务解耦等场景中各种业务系统的多样化需求。
 
 ## 创建 Kafka 实例
-
 
 ### 步骤
 
 <Tabs>
+  <Tab label="命令行">
+    通过命令行创建 Kafka 实例：
 
-<Tab label="CLI">
-
-通过 CLI 创建 Kafka 实例:
-
-```bash
-cat << EOF | kubectl -n default create -f -
-apiVersion: middleware.alauda.io/v1
-kind: RdsKafka
-metadata:
-  name: my-cluster
-spec:
-  entityOperator:
-    topicOperator:
+    ```bash
+    cat << EOF | kubectl -n default create -f -
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafka
+    metadata:
+      name: my-cluster
+    spec:
+      entityOperator:
+        topicOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        userOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        tlsSidecar:
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+      version: 3.8
+      replicas: 3
+      config:
+        auto.create.topics.enable: "false"
+        auto.leader.rebalance.enable: "true"
+        background.threads: "10"
+        compression.type: producer
+        default.replication.factor: "3"
+        delete.topic.enable: "true"
+        log.retention.hours: "168"
+        log.roll.hours: "168"
+        log.segment.bytes: "1073741824"
+        message.max.bytes: "1048588"
+        min.insync.replicas: "1"
+        num.io.threads: "8"
+        num.network.threads: "3"
+        num.recovery.threads.per.data.dir: "1"
+        num.replica.fetchers: "1"
+        unclean.leader.election.enable: "false"
       resources:
         limits:
-          cpu: 1
-          memory: 2Gi
+          cpu: 2
+          memory: 4Gi
         requests:
-          cpu: 1
-          memory: 2Gi
-    userOperator:
-      resources:
-        limits:
-          cpu: 1
-          memory: 2Gi
-        requests:
-          cpu: 1
-          memory: 2Gi
-    tlsSidecar:
-      resources:
-        limits:
-          cpu: 200m
-          memory: 128Mi
-        requests:
-          cpu: 200m
-          memory: 128Mi
-  version: 3.8
-  replicas: 3
-  config:
-    auto.create.topics.enable: "false"
-    auto.leader.rebalance.enable: "true"
-    background.threads: "10"
-    compression.type: producer
-    default.replication.factor: "3"
-    delete.topic.enable: "true"
-    log.retention.hours: "168"
-    log.roll.hours: "168"
-    log.segment.bytes: "1073741824"
-    message.max.bytes: "1048588"
-    min.insync.replicas: "1"
-    num.io.threads: "8"
-    num.network.threads: "3"
-    num.recovery.threads.per.data.dir: "1"
-    num.replica.fetchers: "1"
-    unclean.leader.election.enable: "false"
-  resources:
-    limits:
-      cpu: 2
-      memory: 4Gi
-    requests:
-      cpu: 2
-      memory: 4Gi
-  storage:
-    size: 1Gi
-    # 替换为可用存储类
-    class: local-path
-    deleteClaim: false
-  kafka:
-    listeners:
-      plain: {}
-      external:
-        type: nodeport
-        tls: false
-  zookeeper:
-    # 目前保持与kafka broker一致
-    replicas: 3
-    resources:
-      limits:
-        cpu: 1
-        memory: 2Gi
-      requests:
-        cpu: 1
-        memory: 2Gi
-    # 存储 保持与kafka broker一致
-    storage:
-      size: 1Gi
-      # 替换为可用存储类
-      class: local-path
-      deleteClaim: false
-EOF
-```
+          cpu: 2
+          memory: 4Gi
+      storage:
+        size: 1Gi
+        # 使用可用存储类替代
+        class: local-path
+        deleteClaim: false
+      kafka:
+        listeners:
+          plain: {}
+          external:
+            type: nodeport
+            tls: false
+      zookeeper:
+        # 目前与 Kafka 代理相同
+        replicas: 3
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+        # 存储与 Kafka 代理保持一致
+        storage:
+          size: 1Gi
+          # 使用可用存储类替代
+          class: local-path
+          deleteClaim: false
+    EOF
+    ```
+  </Tab>
 
-</Tab>
+  <Tab label="Web 控制台">
+    1. 点击左侧导航栏中的 **Kafka**。
 
-<Tab label="Web Console">
+    2. 点击 ***命名空间名称***。
 
-1. 在左侧导航栏中，单击 **Kafka**。
+    3. 点击 **创建 Kafka 实例**。
 
-2. 单击 ***命名空间的名称***。
+    4. 根据以下说明完成相关配置。
 
-3. 单击 **创建 Kafka 实例**。
+           <table border="">
+             <tr>
+               <th style={{width: '100px'}}>配置项</th>
+               <th style={{width: '130px'}}>配置项</th>
+               <th>描述</th>
+             </tr>
 
-4. 参考以下说明完成相关配置。
+             <tr>
+               <td><b>参数配置</b></td>
+               <td><b>参数模板</b></td>
+               <td>您可以选择系统或自定义参数模板。有关自定义参数模板，请参考 <a href="/appservice/unified-om/para-template/custom-template">参数模板</a>。</td>
+             </tr>
 
-    <table border="">
-        <tr>
-            <th style={{width: '100px'}}>配置</th>
-            <th style={{width: '130px'}}>配置项</th>
-            <th>说明</th>
-        </tr>
-        <tr>
-            <td><b>参数配置</b></td>
-            <td><b>参数模板</b></td>
-            <td>可选择系统或自定义参数模板，自定义参数模板请参考 <a href="/appservice/unified-om/para-template/custom-template">参数模板</a>。</td>
-        </tr>
-        <tr>
-            <td rowspan="2"><b>Kafka 节点</b></td>
-            <td><b>Broker 节点数</b></td>
-            <td>为了确保 Broker 高可用，每个 Broker 都将被调度到集群的不同节点上。</td>
-        </tr>
-        <tr>
-            <td><b>存储类</b></td>
-            <td>如果下拉列表中无可用存储类，请联系 平台管理员 添加。</td>
-        </tr>
-        <tr>
-            <td rowspan="2"><b>访问方式</b></td>
-            <td><b>认证方式</b></td>
-            <td>为确保数据传输安全，建议 开启加密认证。例如：监听方式为 TLS，认证方式为 SCRAM - SHA - 512。</td>
-        </tr>
-        <tr>
-            <td><b>指定主机端口</b></td>
-            <td>当您使用 NodePort 访问集群并开启指定主机端口后，可以指定服务端口号。<br/><b>注意</b>：更新实例时，端口不支持互换，若您需要交换端口，可以先更新为其他未被占用端口，再重新指定。</td>
-        </tr>
-        <tr>
-            <td rowspan="2"><b>调度配置</b></td>
-            <td><b>节点标签</b></td>
-            <td>通过标签筛选出当前集群中的可用节点。Pod 将被调度到可用节点上。 <br/><b>注意</b>：实例创建后，该配置不再允许修改。</td>
-        </tr>
-        <tr>
-            <td><b>Pod 容忍</b></td>
-            <td> 如果可用节点设置了污点，只有设置了 Pod 容忍，Pod 才会容忍这些污点，且有可能会被调度到 Pod 容忍与节点污点相匹配的节点上。匹配规则如下。 <ul><li><b>Equal</b>：当 Pod 容忍的 <i>key</i>、<i>value</i>、<i>effect</i> 和节点污点中所设值完全一致时，Pod 会容忍节点污点。 </li><li><b>Exists</b>：当 Pod 容忍的 <i>key</i>、<i>effect</i> 和节点污点中所设值保持一致时，Pod 会容忍节点污点。 </li></ul> <br/><b>说明</b>：effect 决定了未容忍节点污点的 Pod 是否会被分配到设置了污点的节点上。例如，effect 为 NoExecute 表示只能调度容忍污点的 Pod（包括本 Kafka 实例中的 Pod），且会驱逐已经在该节点上运行但不容忍污点的 Pod（其他实例的 Pod）。更多关于匹配规则的信息，参见  <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/" >Kubernetes 官方文档</a>。</td>
-        </tr>
-    </table>
+             <tr>
+               <td rowspan="2"><b>Kafka 节点</b></td>
+               <td><b>代理节点数</b></td>
+               <td>为确保代理的高可用性，每个代理将在集群中的不同节点上调度。</td>
+             </tr>
 
-6. 单击 **创建**。
+             <tr>
+               <td><b>存储类</b></td>
+               <td>如果下拉列表中没有可用的存储类，请联系平台管理员添加一个。</td>
+             </tr>
 
-    待实例状态变为 **运行中** 时，实例创建成功。
+             <tr>
+               <td rowspan="2"><b>访问方式</b></td>
+               <td><b>认证方式</b></td>
+               <td>为确保数据传输安全，建议启用加密认证。例如：监听方式为 TLS，认证方式为 SCRAM - SHA - 512。</td>
+             </tr>
 
-</Tab>
+             <tr>
+               <td><b>指定主机端口</b></td>
+               <td>当使用 NodePort 访问集群并打开指定主机端口时，您可以指定服务端口号。 <br /><b>注意</b>：在更新实例时，端口不可互换。如果需要交换端口，您可以先更新到另一个空闲的端口，然后重新指定。</td>
+             </tr>
 
+             <tr>
+               <td rowspan="2"><b>调度配置</b></td>
+               <td><b>节点标签</b></td>
+               <td>通过标签过滤当前集群中的可用节点。Pods 将调度到可用节点上。 <br /><b>注意</b>：实例创建后，此配置不再允许修改。</td>
+             </tr>
 
+             <tr>
+               <td><b>Pod 容忍</b></td>
+               <td>如果可用节点被标记，只有设置了容忍的 Pods 才能容忍这些标记，并可以调度到与 Pod 容忍和节点标记匹配的节点。匹配规则如下：<ul><li><b>完全匹配</b>：当 Pod 容忍的 <i>key</i>、<i>value</i>、<i>effect</i> 完全匹配节点标记中设置的值时，Pod 将容忍该节点标记。</li><li><b>存在</b>：当 Pod 容忍的 <i>key</i>、<i>effect</i> 与节点标记中的值匹配时，Pod 将容忍该节点标记。</li></ul> <br /><b>描述</b>：效应决定了不容忍节点标记的 Pods 是否会被分配到具有这些标记的节点。例如，NoExecute 效应表示，只有容忍这些标记的 Pods（包括来自该 Kafka 实例的 Pods）可以被调度，并将驱逐在该节点上已运行但不容忍这些标记的 Pods（来自其他实例）。有关匹配规则的更多信息，请参见 <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/">Kubernetes 官方文档</a>。</td>
+             </tr>
+           </table>
+
+    5. 点击 **创建**。
+
+       当实例状态更改为 **运行中**，表示实例已成功创建。
+  </Tab>
 </Tabs>
 
-在实例创建之后，可通过如下命令查看实例的状态：
+创建实例后，您可以使用以下命令检查实例的状态：
 
 ```bash
 $ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
@@ -175,166 +175,157 @@ my-cluster   3.8       Active   <none>                                    2025-0
 test38       3.8       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
 ```
 
-输出表格字段含义如下：
+输出表字段的含义如下：
 
-| 字段           | 说明                                      |
-|:---------------|:------------------------------------------|
-| NAME           | 实例名称                                  |
-| VERSION        | 当前只支持`2.5.0`, `2.7.0`, `2.8.2`, `3.8`这 4 个版本  |
-| STATUS         | 实例当前的状态，可能有以下状态：<ul><li>`Creating`: 实例正在创建中</li><li>`Updating`: 实例正在更新中</li><li>`Failed`: 实例出现不可自动回复的错误</li><li>`Paused`: 实例已经人工暂停</li><li>`Restarting`: 实例正在重启</li><li>`Active`: 实例已经准备就绪</li></ul> |
-| MESSAGE        | 实例处于当前状态的原因                    |
-| CreationTimestamp            | 实例创建时间戳                            |
-
+| 字段             | 描述                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NAME              | 实例名称                                                                                                                                                                                                                                                                                                                                                                                                           |
+| VERSION           | 目前仅支持以下4个版本：`2.5.0`、`2.7.0`、`2.8.2`、`3.8`                                                                                                                                                                                                                                                                                                                                              |
+| STATUS            | 当前实例的状态，可能包括以下状态： <ul><li>`Creating`：实例正在创建</li><li>`Updating`：实例正在更新</li><li>`Failed`：实例遇到不可恢复的错误</li><li>`Paused`：实例已被手动暂停</li><li>`Restarting`：实例正在重启</li><li>`Active`：实例已准备好使用</li></ul> |
+| MESSAGE           | 实例当前状态的原因                                                                                                                                                                                                                                                                                                                                                                            |
+| CreationTimestamp | 实例创建的时间戳                                                                                                                                                                                                                                                                                                                                                                             |
 
 ## 特殊场景
 
 <Directive type="warning" title="重要提示">
-创建实例时 Broker 节点数推荐为 **3**。若您的 Broker 节点数小于推荐值 **3**，需要在创建时修改部分参数：
-
+  创建实例时建议将代理节点数设置为 **3**。如果您的代理节点数少于建议值 **3**，则在创建时您需要修改某些参数：
 </Directive>
- 
 
 <Tabs>
-<Tab label="CLI">
+  <Tab label="命令行">
+    通过命令行创建单节点 Kafka 实例：
 
-通过 CLI 创建单节点 Kafka 实例:
-
-```bash
-cat << EOF | kubectl -n default create -f -
-apiVersion: middleware.alauda.io/v1
-kind: RdsKafka
-metadata:
-  name: my-cluster
-spec:
-  entityOperator:
-    topicOperator:
+    ```bash
+    cat << EOF | kubectl -n default create -f -
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafka
+    metadata:
+      name: my-cluster
+    spec:
+      entityOperator:
+        topicOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        userOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        tlsSidecar:
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+      version: 3.8
+      replicas: 1
+      config:
+        auto.create.topics.enable: "false"
+        auto.leader.rebalance.enable: "true"
+        background.threads: "10"
+        compression.type: producer
+        default.replication.factor: "3"
+        delete.topic.enable: "true"
+        log.retention.hours: "168"
+        log.roll.hours: "168"
+        log.segment.bytes: "1073741824"
+        message.max.bytes: "1048588"
+        min.insync.replicas: "1"
+        num.io.threads: "8"
+        num.network.threads: "3"
+        num.recovery.threads.per.data.dir: "1"
+        num.replica.fetchers: "1"
+        unclean.leader.election.enable: "false"
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
       resources:
         limits:
-          cpu: 1
-          memory: 2Gi
+          cpu: 2
+          memory: 4Gi
         requests:
-          cpu: 1
-          memory: 2Gi
-    userOperator:
-      resources:
-        limits:
-          cpu: 1
-          memory: 2Gi
-        requests:
-          cpu: 1
-          memory: 2Gi
-    tlsSidecar:
-      resources:
-        limits:
-          cpu: 200m
-          memory: 128Mi
-        requests:
-          cpu: 200m
-          memory: 128Mi
-  version: 3.8
-  replicas: 1
-  config:
-    auto.create.topics.enable: "false"
-    auto.leader.rebalance.enable: "true"
-    background.threads: "10"
-    compression.type: producer
-    default.replication.factor: "3"
-    delete.topic.enable: "true"
-    log.retention.hours: "168"
-    log.roll.hours: "168"
-    log.segment.bytes: "1073741824"
-    message.max.bytes: "1048588"
-    min.insync.replicas: "1"
-    num.io.threads: "8"
-    num.network.threads: "3"
-    num.recovery.threads.per.data.dir: "1"
-    num.replica.fetchers: "1"
-    unclean.leader.election.enable: "false"
-    offsets.topic.replication.factor: 1
-    transaction.state.log.replication.factor: 1
-    transaction.state.log.min.isr: 1
-  resources:
-    limits:
-      cpu: 2
-      memory: 4Gi
-    requests:
-      cpu: 2
-      memory: 4Gi
-  storage:
-    size: 1Gi
-    # 替换为可用存储类
-    class: local-path
-    deleteClaim: false
-  kafka:
-    listeners:
-      plain: {}
-      external:
-        type: nodeport
-        tls: false
-  zookeeper:
-    # 目前保持与kafka broker一致
-    replicas: 1
-    resources:
-      limits:
-        cpu: 1
-        memory: 2Gi
-      requests:
-        cpu: 1
-        memory: 2Gi
-    # 存储 保持与kafka broker一致
-    storage:
-      size: 1Gi
-      # 替换为可用存储类
-      class: local-path
-      deleteClaim: false
-EOF
-```
+          cpu: 2
+          memory: 4Gi
+      storage:
+        size: 1Gi
+        # 使用可用存储类替代
+        class: local-path
+        deleteClaim: false
+      kafka:
+        listeners:
+          plain: {}
+          external:
+            type: nodeport
+            tls: false
+      zookeeper:
+        # 目前与 Kafka 代理相同
+        replicas: 1
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+        # 存储与 Kafka 代理保持一致
+        storage:
+          size: 1Gi
+          # 使用可用存储类替代
+          class: local-path
+          deleteClaim: false
+    EOF
+    ```
+  </Tab>
 
+  <Tab label="Web 控制台">
+    1. 点击左侧导航栏中的 **Kafka**。
 
-</Tab>
+    2. 点击 ***命名空间名称***。
 
-<Tab label="Web Console">
+    3. 点击 **创建 Kafka 实例**。
 
+    4. 点击 **展开实例参数**，并将以下参数值设置为 **1**：
 
-1. 在左侧导航栏中，单击 **Kafka**。
+           <table border="">
+             <tr>
+               <th style={{width: '150px'}}>参数</th>
+               <th>配置值</th>
+               <th>描述</th>
+             </tr>
 
-2. 单击 ***命名空间的名称***。
+             <tr>
+               <td>`offsets.topic.replication.factor`</td>
+               <td>1</td>
+               <td>偏移主题的副本数</td>
+             </tr>
 
-3. 单击 **创建 Kafka 实例**。
+             <tr>
+               <td>`transaction.state.log.replication.factor`</td>
+               <td>1</td>
+               <td>事务状态日志的副本数</td>
+             </tr>
 
-4. 单击 **展开实例参数**，新增或修改以下参数值为 **1**：
+             <tr>
+               <td>`transaction.state.log.min.isr`</td>
+               <td>1</td>
+               <td>事务状态日志的最小同步副本数</td>
+             </tr>
+           </table>
 
-    <table border="">
-        <tr>
-            <th style={{width: '150px'}}>参数</th>
-            <th>配置值</th>
-            <th>说明</th>
-        </tr>
-        <tr>
-            <td>`offsets.topic.replication.factor`</td>
-            <td>1</td>
-            <td>偏移量主题的副本因子</td>
-        </tr>
-        <tr>
-            <td>`transaction.state.log.replication.factor`</td>
-            <td>1</td>
-            <td>事务状态日志的副本因子</td>
-        </tr>
-        <tr>
-            <td>`transaction.state.log.min.isr`</td>
-            <td>1</td>
-            <td>事务状态日志的最小同步副本数</td>
-        </tr>
-    </table>
+    5. 完成其他配置。
 
-5. 完成其他配置。  
+    6. 点击 **创建**。
 
-6. 单击 **创建**。
-
-    待实例状态变为 **运行中** 时，实例创建成功。
-
-
-
-</Tab>
-
+       当实例状态更改为 **运行中**，表示实例已成功创建。
+  </Tab>
 </Tabs>

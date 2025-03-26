@@ -191,48 +191,6 @@ The meanings of the output table fields are as follows:
 </Directive>
 
 <Tabs>
-  <Tab label="Web Console">
-    1. Click on **Kafka** in the left navigation bar.
-
-    2. Click on ***Namespace Name***.
-
-    3. Click on **Create Kafka Instance**.
-
-    4. Click on **Expand Instance Parameters** and set the following parameter values to **1**:
-
-           <table border="">
-             <tr>
-               <th style={{width: '150px'}}>Parameter</th>
-               <th>Configuration Value</th>
-               <th>Description</th>
-             </tr>
-
-             <tr>
-               <td>`offsets.topic.replication.factor`</td>
-               <td>1</td>
-               <td>Replication factor for the offsets topic</td>
-             </tr>
-
-             <tr>
-               <td>`transaction.state.log.replication.factor`</td>
-               <td>1</td>
-               <td>Replication factor for the transaction state log</td>
-             </tr>
-
-             <tr>
-               <td>`transaction.state.log.min.isr`</td>
-               <td>1</td>
-               <td>Minimum in-sync replicas for the transaction state log</td>
-             </tr>
-           </table>
-
-    5. Complete other configurations.
-
-    6. Click on **Create**.
-
-       When the instance status changes to **Running**, the instance has been created successfully.
-  </Tab>
-
   <Tab label="CLI">
     Create a single-node Kafka instance via CLI:
 
@@ -326,5 +284,46 @@ The meanings of the output table fields are as follows:
           deleteClaim: false
     EOF
     ```
+  </Tab>
+  <Tab label="Web Console">
+    1. Click on **Kafka** in the left navigation bar.
+
+    2. Click on ***Namespace Name***.
+
+    3. Click on **Create Kafka Instance**.
+
+    4. Click on **Expand Instance Parameters** and set the following parameter values to **1**:
+
+           <table border="">
+             <tr>
+               <th style={{width: '150px'}}>Parameter</th>
+               <th>Configuration Value</th>
+               <th>Description</th>
+             </tr>
+
+             <tr>
+               <td>`offsets.topic.replication.factor`</td>
+               <td>1</td>
+               <td>Replication factor for the offsets topic</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.replication.factor`</td>
+               <td>1</td>
+               <td>Replication factor for the transaction state log</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.min.isr`</td>
+               <td>1</td>
+               <td>Minimum in-sync replicas for the transaction state log</td>
+             </tr>
+           </table>
+
+    5. Complete other configurations.
+
+    6. Click on **Create**.
+
+       When the instance status changes to **Running**, the instance has been created successfully.
   </Tab>
 </Tabs>
