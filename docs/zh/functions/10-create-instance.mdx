@@ -1,6 +1,6 @@
 ---
 weight: 10
-sourceSHA: 4c2f798b99bed41a3a52d7038af67ecd241e2efe21c96c5f3305dfc2a44e9cad
+sourceSHA: 382827880236b07157954d816fe602b7548bc6b9e4534710efad32b3bea1ad5b
 ---
 
 # 创建实例
@@ -234,7 +234,6 @@ test38       3.8       Failed   Pod is unschedulable or is not starting   2025-0
         auto.leader.rebalance.enable: "true"
         background.threads: "10"
         compression.type: producer
-        default.replication.factor: "3"
         delete.topic.enable: "true"
         log.retention.hours: "168"
         log.roll.hours: "168"
@@ -246,6 +245,8 @@ test38       3.8       Failed   Pod is unschedulable or is not starting   2025-0
         num.recovery.threads.per.data.dir: "1"
         num.replica.fetchers: "1"
         unclean.leader.election.enable: "false"
+        ## 确保下面参数配置正确
+        default.replication.factor: "1"
         offsets.topic.replication.factor: 1
         transaction.state.log.replication.factor: 1
         transaction.state.log.min.isr: 1
@@ -301,6 +302,12 @@ test38       3.8       Failed   Pod is unschedulable or is not starting   2025-0
                <th style={{width: '150px'}}>参数</th>
                <th>配置值</th>
                <th>描述</th>
+             </tr>
+
+             <tr>
+               <td>`default.replication.factor`</td>
+               <td>1</td>
+               <td>自动创建主题的副本因子</td>
              </tr>
 
              <tr>

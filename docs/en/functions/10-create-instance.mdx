@@ -9,7 +9,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
 
 ## Create Kafka Instance
 
-### Steps
+### Procedure
 
 <Tabs>
 <Tab label="CLI">
@@ -233,7 +233,6 @@ The meanings of the output table fields are as follows:
         auto.leader.rebalance.enable: "true"
         background.threads: "10"
         compression.type: producer
-        default.replication.factor: "3"
         delete.topic.enable: "true"
         log.retention.hours: "168"
         log.roll.hours: "168"
@@ -245,6 +244,8 @@ The meanings of the output table fields are as follows:
         num.recovery.threads.per.data.dir: "1"
         num.replica.fetchers: "1"
         unclean.leader.election.enable: "false"
+        ## Ensure that the following parameter configurations are correct
+        default.replication.factor: "1"
         offsets.topic.replication.factor: 1
         transaction.state.log.replication.factor: 1
         transaction.state.log.min.isr: 1
@@ -300,7 +301,11 @@ The meanings of the output table fields are as follows:
                <th>Configuration Value</th>
                <th>Description</th>
              </tr>
-
+             <tr>
+               <td>`default.replication.factor`</td>
+               <td>1</td>
+               <td>The replication factor for automatically created topics</td>
+             </tr>
              <tr>
                <td>`offsets.topic.replication.factor`</td>
                <td>1</td>
