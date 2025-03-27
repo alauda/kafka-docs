@@ -9,7 +9,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
 
 ## Create Kafka Instance
 
-### Steps
+### Procedure
 
 <Tabs>
 <Tab label="CLI">
@@ -184,55 +184,15 @@ The meanings of the output table fields are as follows:
 | MESSAGE           | The reason for the instance's current status                                                                                                                                                                                          |
 | CreationTimestamp | The timestamp when the instance was created                                                                                                                                                                                              |
 
-## Special Scenarios
+## Create Single-Node Kafka Instance
 
 <Directive type="warning" title="Important Notice">
-  It is recommended to set the Broker node count to **3** when creating an instance. If your Broker node count is less than the recommended value of **3**, you will need to modify certain parameters during creation:
+  It is recommended to set the Broker node count to **3** when creating an instance. If your Broker node count is less than the recommended value of **3**, you will need to modify certain parameters during creation.
 </Directive>
 
+### Procedure
+
 <Tabs>
-  <Tab label="Web Console">
-    1. Click on **Kafka** in the left navigation bar.
-
-    2. Click on ***Namespace Name***.
-
-    3. Click on **Create Kafka Instance**.
-
-    4. Click on **Expand Instance Parameters** and set the following parameter values to **1**:
-
-           <table border="">
-             <tr>
-               <th style={{width: '150px'}}>Parameter</th>
-               <th>Configuration Value</th>
-               <th>Description</th>
-             </tr>
-
-             <tr>
-               <td>`offsets.topic.replication.factor`</td>
-               <td>1</td>
-               <td>Replication factor for the offsets topic</td>
-             </tr>
-
-             <tr>
-               <td>`transaction.state.log.replication.factor`</td>
-               <td>1</td>
-               <td>Replication factor for the transaction state log</td>
-             </tr>
-
-             <tr>
-               <td>`transaction.state.log.min.isr`</td>
-               <td>1</td>
-               <td>Minimum in-sync replicas for the transaction state log</td>
-             </tr>
-           </table>
-
-    5. Complete other configurations.
-
-    6. Click on **Create**.
-
-       When the instance status changes to **Running**, the instance has been created successfully.
-  </Tab>
-
   <Tab label="CLI">
     Create a single-node Kafka instance via CLI:
 
@@ -275,7 +235,6 @@ The meanings of the output table fields are as follows:
         auto.leader.rebalance.enable: "true"
         background.threads: "10"
         compression.type: producer
-        default.replication.factor: "3"
         delete.topic.enable: "true"
         log.retention.hours: "168"
         log.roll.hours: "168"
@@ -287,6 +246,8 @@ The meanings of the output table fields are as follows:
         num.recovery.threads.per.data.dir: "1"
         num.replica.fetchers: "1"
         unclean.leader.election.enable: "false"
+        ## Ensure that the following parameter configurations are correct
+        default.replication.factor: "1"
         offsets.topic.replication.factor: 1
         transaction.state.log.replication.factor: 1
         transaction.state.log.min.isr: 1
@@ -326,5 +287,52 @@ The meanings of the output table fields are as follows:
           deleteClaim: false
     EOF
     ```
+  </Tab>
+  <Tab label="Web Console">
+    1. Click on **Kafka** in the left navigation bar.
+
+    2. Click on ***Namespace Name***.
+
+    3. Click on **Create Kafka Instance**.
+
+    4. Click on **Expand Instance Parameters** and set the following parameter values to **1**:
+
+           <table border="">
+             <tr>
+               <th style={{width: '150px'}}>Parameter</th>
+               <th>Configuration Value</th>
+               <th>Description</th>
+             </tr>
+             <tr>
+               <td>`default.replication.factor`</td>
+               <td>1</td>
+               <td>The replication factor for automatically created topics</td>
+             </tr>
+             <tr>
+               <td>`offsets.topic.replication.factor`</td>
+               <td>1</td>
+               <td>Replication factor for the offsets topic</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.replication.factor`</td>
+               <td>1</td>
+               <td>Replication factor for the transaction state log</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.min.isr`</td>
+               <td>1</td>
+               <td>Minimum in-sync replicas for the transaction state log</td>
+             </tr>
+           </table>
+
+    5. Complete other configurations.
+
+    6. Switch to the YAML editing page and change the values of `spec.replicas` and `spec.zookeeper.replicas` to 1
+
+    7. Click on **Create**.
+
+       When the instance status changes to **Running**, the instance has been created successfully.
   </Tab>
 </Tabs>

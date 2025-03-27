@@ -7,18 +7,21 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
 
 ## What is Kafka?
 
-**Kafka** is a distributed stream processing platform known for its high throughput, low latency, scalability, and fault tolerance. As a distributed message queue, Kafka efficiently transports and stores large volumes of data between different systems. It supports various data formats and can handle real-time data streams, widely used in log collection, event-driven architectures, real-time analytics, data integration, and many other fields. Kafka employs a distributed architecture with core components including Producers, Consumers, Topics, and Brokers, and ensures data reliability and high availability through partitioning and replication mechanisms. In terms of deployment modes, it supports:
+**Kafka** is a distributed stream processing platform known for its high throughput, low latency, scalability, and fault tolerance. As a distributed message queue, Kafka efficiently transports and stores large volumes of data between different systems. It supports various data formats and can handle real-time data streams, widely used in log collection, event-driven architectures, real-time analytics, data integration, and many other fields. Kafka employs a distributed architecture with core components including Producers, Consumers, Topics, and Brokers, and ensures data reliability and high availability through partitioning and replication mechanisms. 
 
-- **ZooKeeper (zk)**: The traditional mode, relying on ZooKeeper to manage cluster metadata.
+In terms of deployment modes, it supports:
+
+- **ZooKeeper (ZK) mode**: The traditional mode, relying on ZooKeeper to manage cluster metadata.
+- **Kraft mode**: Coming soon.
 
 ## What is Alauda Streaming Service for Kafka?
 
-**Alauda Streaming Service for Kafka** is a deeply customized solution developed based on Kubernetes (K8s), providing convenience for the full lifecycle management of Kafka instances in Kubernetes clusters through a custom controller (Operator). It extends the Kubernetes API to provide users with a declarative configuration approach, automating the operation and maintenance of Kafka clusters, allowing users to deploy, manage, and maintain Kafka clusters easily in a cloud-native manner, thereby meeting the stringent demands for stability, scalability, and efficiency in production environments.
+**Alauda Streaming Service for Kafka** is a deeply optimized solution developed based on Kubernetes (K8s), providing convenience for the full lifecycle management of Kafka instances in Kubernetes clusters through controller (Operator). It extends the Kubernetes API to provide users with a declarative configuration approach, automating the operation and maintenance of Kafka clusters, allowing users to deploy, manage, and maintain Kafka clusters easily in a cloud-native manner, thereby meeting the stringent demands for stability, scalability, and efficiency in production environments.
 
 ### Core Features
 
-1. **Zookeeper Mode Support**
-   ZooKeeper maintains metadata information for the Kafka cluster, including node status, topic partition allocation, etc., ensuring stable operation and coordination of the cluster.Suitable for various sizes of production and non-production environments.
+1. **ZooKeeper Mode Support**
+   ZooKeeper maintains metadata information for the Kafka cluster, including node status, topic partition allocation, etc., ensuring stable operation and coordination of the cluster. Especially suitable for various sizes of production environments.
 
 2. **Version Compatibility**
    - Supports multiple mainstream versions such as Kafka 2.5.0, 2.7.0, 2.8.2, and 3.8. Users can choose an appropriate Kafka version based on their business needs and technology stack, accommodating both traditional businesses with high stability requirements and innovative projects seeking new features.
@@ -28,7 +31,7 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
    - Provides a comprehensive user authentication and authorization mechanism to strictly control access to the Kafka cluster for different users or applications, ensuring secure access to sensitive data.
 
 4. **Networking and Access Methods**
-   - Supports various Kubernetes service types, such as NodePort and LoadBalancer, allowing users to expose Kafka services to external applications based on their network architecture and needs. Additionally, users can flexibly specify NodePort ports to meet specific network configuration requirements.
+   - Supports various Kubernetes service types, such as NodePort and LoadBalancer, allowing users to expose Kafka services to external applications based on their network architecture and business needs. Additionally, users can flexibly specify NodePort ports to meet specific network configuration requirements.
    - Fully compatible with both IPv4 and IPv6 network environments, adapting to different network scenarios, and ensuring stable operation in environments primarily using traditional IPv4 networks and those transitioning to IPv6 architectures.
 
 5. **Elastic Scaling**
@@ -40,7 +43,7 @@ sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
    - Utilizes a multi-replica mechanism to replicate data across multiple nodes, allowing automatic failover to other replicas when a node fails, ensuring high availability in production environments.
 
 7. **Custom Scheduling Policies**
-   - Supports Kubernetes' NodeSelector, Toleration, and Affinity scheduling policies, allowing users to flexibly control the scheduling logic of Kafka Pods based on node labels, characteristics, and business needs, thus deploying Kafka instances on the most suitable nodes to maximize cluster resources.
+   - Supports Kubernetes' NodeSelector, Toleration, and Affinity scheduling policies, allowing users to flexibly control the scheduling logic of Kafka pods based on node labels, node characteristics, and business needs, thus deploying Kafka instances on the most suitable nodes to maximize cluster resources utilization.
 
 8. **Automated Operation and Maintenance Capabilities**
    - **Rolling Scaling**: During scaling operations, a rolling method is used to gradually adjust the number of Kafka Broker nodes while automatically handling data redistribution and load balancing to ensure normal cluster operation and data consistency throughout the process.

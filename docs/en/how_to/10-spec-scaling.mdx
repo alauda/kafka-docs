@@ -13,7 +13,7 @@ As data volume grows, it is essential to expand capacity in a timely manner befo
 2. It is recommended to scale all nodes to the same specification, as expanding the storage capacity of a single Broker can lead to storage imbalance. The storage capacity on the expanded Broker may be overused, while the storage capacity on other Brokers may not be fully utilized. In this case, it may be necessary to migrate existing data to achieve a balanced distribution across the new storage space. This means that some data may need to be migrated from the original Broker to the expanded Broker, introducing complexity and additional operations for data migration. To avoid these issues, it is advisable to keep the storage capacity of Brokers equal or as close as possible when expanding the Kafka cluster. This will enable a balanced distribution of data and load, enhancing the performance and reliability of the cluster.
 3. When changing CPU and memory resources, please evaluate based on business requirements and resource availability to avoid expansion failures due to resources being either too small or too large, which may prevent the instance from being started normally.
 
-## Steps
+## Procedure
 
 <Tabs>
   <Tab label="CLI">
