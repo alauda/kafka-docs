@@ -12,7 +12,7 @@ title: Install
 ## Installing Alauda Application Services Essentials
 
 ::: tip Optional Deployment
-The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if graphical services are not required.
+The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
 :::
 
 ### Prerequisites
@@ -20,7 +20,7 @@ The plugin is a fundamental component of Alauda Application Services graphical i
 1. Download Alauda Application Services Essentials that matches your platform.
 2. Use the platform's application listing capability to list the Alauda Application Services Essentials in the `global` cluster.
 
-### Steps to Execute
+### Procedure
 
 <Tabs>
   <Tab label="Web Console">
@@ -33,7 +33,7 @@ The plugin is a fundamental component of Alauda Application Services graphical i
 ## Installing Alauda Application Services RDS Framework
 
 ::: tip Optional Deployment
-The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if graphical services are not required.
+The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
 :::
 
 ### Prerequisites
@@ -41,12 +41,12 @@ The plugin is a fundamental component of Alauda Application Services graphical i
 1. Download Alauda Application Services RDS Framework that matches your platform.
 2. Use the platform's application listing capability to list the Alauda Application Services RDS Framework in any cluster where you wish to use Alauda Application Services graphical capabilities.
 
-### Steps to Execute
+### Procedure
 
 <Tabs>
   <Tab label="Web Console">
     1. Log in to the platform and go to the **Platform Management** page.
-    2. In the left navigation bar, select **Marketplace** -> **Operator Hub** to enter the **Operator Hub** page.
+    2. In the left navigation bar, select **Marketplace** -> **Operator Hub** to enter the **OperatorHub** page.
     3. Find **Alauda Application Services RDS Framework**, click **Install**, and enter the deployment page.
 
     Configuration Parameters:
@@ -64,18 +64,57 @@ The plugin is a fundamental component of Alauda Application Services graphical i
 
 ## Installing the Alauda Streaming Service for Kafka Plugin
 
+:::tip Optional Deployment
+This plugin manages Kafka instances for versions `3.x`; if you need to manage `2.x` instances, the Alauda build of Kafka 2 plugin must be installed additionally.
+:::
+
 ### Prerequisites
 
 1. Download the plugin installation package that matches your platform.
 2. Use the platform's application listing capability to list the plugin in any cluster where you wish to use Alauda Streaming Service for Kafka capabilities.
 
-### Steps to Execute
+### Procedure
 
 <Tabs>
   <Tab label="Web Console">
     1. Log in to the platform and go to the **Platform Management** page.
     2. In the left navigation bar, select **Application Store Management** -> **Operator** to enter the **Operator Hub** page.
     3. Find **Alauda Streaming Service for Kafka**, click **Install**, and enter the deployment page.
+
+    Configuration Parameters:
+
+    | **Parameter**   | **Recommended Configuration**                                            |
+    | :------- | :-------------------------------------------------- |
+    | **Upgrade Strategy** | **Manual**: When there is a new version in the Operator Hub, manual confirmation is required to upgrade the Operator to the latest version. |
+    | **Installation Mode** | **Cluster**: All namespaces under the cluster share a single Operator to create and manage instances, resulting in lower resource consumption.    |
+    | **Channel**   | The default channel is **stable**.                           |
+    | **Installation Location** | Choose **Recommended Namespace**: Automatically created if none exists.                               |
+
+    4. On the **Install Operator** page, select **Default Configuration**, then click **Install** to complete the deployment.
+  </Tab>
+</Tabs>
+
+
+
+## Installing the Alauda build of Kafka 2 Plugin
+
+:::tip Optional Deployment
+This plugin manages Kafka instances for versions `2.x`; it can be omitted if `2.x` version instances are not required.
+:::
+
+### Prerequisites
+
+1. Download the plugin installation package that matches your platform.
+2. Use the platform's application listing capability to list the plugin in any cluster where you wish to use Alauda build of Kafka 2 capabilities.
+3. Ensure that the Alauda Streaming Service for Kafka Plugin is installed.
+
+### Procedure
+
+<Tabs>
+  <Tab label="Web Console">
+    1. Log in to the platform and go to the **Platform Management** page.
+    2. In the left navigation bar, select **Application Store Management** -> **Operator** to enter the **Operator Hub** page.
+    3. Find **Alauda build of Kafka 2**, click **Install**, and enter the deployment page.
 
     Configuration Parameters:
 
