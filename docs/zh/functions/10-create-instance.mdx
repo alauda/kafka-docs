@@ -1,6 +1,6 @@
 ---
 weight: 10
-sourceSHA: 382827880236b07157954d816fe602b7548bc6b9e4534710efad32b3bea1ad5b
+sourceSHA: f601b8c9c24dddecdbeb2279fa2348c48bd5069e76a7cea61c09d457e24cf32f
 ---
 
 # 创建实例
@@ -185,11 +185,13 @@ test38       3.8       Failed   Pod is unschedulable or is not starting   2025-0
 | MESSAGE           | 实例当前状态的原因                                                                                                                                                                                                                                                                                                                                                                            |
 | CreationTimestamp | 实例创建的时间戳                                                                                                                                                                                                                                                                                                                                                                             |
 
-## 特殊场景
 
+## 单节点实例创建
 <Directive type="warning" title="重要提示">
-  创建实例时建议将代理节点数设置为 **3**。如果您的代理节点数少于建议值 **3**，则在创建时您需要修改某些参数：
+  创建实例时建议将代理节点数设置为 **3**。如果您的代理节点数少于建议值 **3**，则在创建时您需要修改特定参数。
 </Directive>
+
+### 步骤
 
 <Tabs>
   <Tab label="命令行">
@@ -331,7 +333,9 @@ test38       3.8       Failed   Pod is unschedulable or is not starting   2025-0
 
     5. 完成其他配置。
 
-    6. 点击 **创建**。
+    6. 切换到YAML编辑界面,更改`spec.replicas` 和 `spec.zookeeper.replicas` 的值为 1
+
+    7. 点击 **创建**。
 
        当实例状态更改为 **运行中**，表示实例已成功创建。
   </Tab>

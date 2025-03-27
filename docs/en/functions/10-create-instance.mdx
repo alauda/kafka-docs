@@ -184,11 +184,13 @@ The meanings of the output table fields are as follows:
 | MESSAGE           | The reason for the instance's current status                                                                                                                                                                                          |
 | CreationTimestamp | The timestamp when the instance was created                                                                                                                                                                                              |
 
-## Special Scenarios
+## Create Single-Node Kafka Instance
 
 <Directive type="warning" title="Important Notice">
-  It is recommended to set the Broker node count to **3** when creating an instance. If your Broker node count is less than the recommended value of **3**, you will need to modify certain parameters during creation:
+  It is recommended to set the Broker node count to **3** when creating an instance. If your Broker node count is less than the recommended value of **3**, you will need to modify certain parameters during creation.
 </Directive>
+
+### Procedure
 
 <Tabs>
   <Tab label="CLI">
@@ -327,7 +329,9 @@ The meanings of the output table fields are as follows:
 
     5. Complete other configurations.
 
-    6. Click on **Create**.
+    6. Switch to the YAML editing page and change the values of `spec.replicas` and `spec.zookeeper.replicas` to 1
+
+    7. Click on **Create**.
 
        When the instance status changes to **Running**, the instance has been created successfully.
   </Tab>
