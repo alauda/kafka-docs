@@ -1,10 +1,11 @@
 ---
 weight: 15
+sourceSHA: 4b9ae35d0338b84a7b257f73f84ea23122f3482c1fac675762802431c213b231
 ---
 
 # 删除实例
 
-删除实例除了删除创建的 CR 资源，还会删除 Operator 根据 CR 资源创建的 Statefulset，Configmap，Secret, PersistentVolumeClaim 等资源。
+删除实例不仅会移除所创建的 CR 资源，还会删除 Operator 根据 CR 资源创建的 StatefulSet、ConfigMap、Secret、PersistentVolumeClaim 以及其他资源。
 
 ## 步骤
 
@@ -12,22 +13,22 @@ weight: 15
 
 <Tab label="CLI">
 
-* 如果实例没有开启持久化，或者需要保留实例的持久化数据，执行以下命令来删除实例：
+* 如果实例没有开启持久化，或者您需要保留实例的持久化数据，请执行以下命令删除实例：
 
 ```bash
 # delete kafka instance directly
-kubectl delete -n <namespace>  rdskafka <name> 
+kubectl delete -n <namespace> rdskafka <name>
 ```
-* 如果删除实例的同时，也要删除实例，可执行如下命令:
+
+* 如果您希望删除实例时同时删除其持久卷申请，请执行以下命令：
 
 ```bash
 # delete kafka instance directly
-kubectl delete -n <namespace>  rdskafka <name> 
+kubectl delete -n <namespace> rdskafka <name>
 
 # patch delete pvc
-kubectl delete -n <namespace>  pvc -l strimzi.io/cluster=<name> ,strimzi.io/kind=Kafka
+kubectl delete -n <namespace> pvc -l strimzi.io/cluster=<name>,strimzi.io/kind=Kafka
 ```
-
 
 </Tab>
 
@@ -35,19 +36,19 @@ kubectl delete -n <namespace>  pvc -l strimzi.io/cluster=<name> ,strimzi.io/kind
 
 1. 在左侧导航栏中，单击 **Kafka**。
 
-2. 单击 ***命名空间的名称***。
+2. 单击 ***命名空间名称***。
 
-3. 在实例列表中选择要删除的实例，进入实例详情页面。
+3. 在实例列表中选择要删除的实例，并进入实例详情页面。
 
-4. 在**实例详情** 页面的右上角，点击**操作**按钮，展开功能菜单。
+4. 在 **实例详情** 页面的右上角，点击 **操作** 按钮，展开功能菜单。
 
-5. 点击功能菜单中的**删除**，会弹出删除确认框。
+5. 点击功能菜单中的 **删除**，会弹出确认对话框。
 
-6. 对开启了数据持久化的实例，可勾选“删除持久卷申明”来释放存储，或者不勾选来保留数据。
+6. 对于开启了数据持久化的实例，您可以勾选“删除持久卷申明”以释放存储，或不勾选以保留数据。
 
-7. 在弹出框中数据要删除的实例名称
+7. 在弹出窗口中，输入要删除的实例名称。
 
-8. 点击**删除**
+8. 点击 **删除**。
 
 </Tab>
 

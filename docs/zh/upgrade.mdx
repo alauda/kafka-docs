@@ -3,9 +3,12 @@ weight: 16
 i18n:
   title:
     zh: 升级
-sourceSHA: 4b6d8c7b1b3e577f5a742f33b99f915d742553dc915741e6abd6c1777f81c2b9
+sourceSHA: 39bd461e4c970ff660456ca3d15a1f14afb8a5b536014d5a3a30acc72a31d82e
 ---
 
 # 升级
 
-应用服务插件的升级不需要特别的流程。您可以参考 <ExternalSiteLink name="acp" href="/upgrade/index" children="升级操作员" /> 以了解应用服务的升级。
+灵雀云的 Kafka 流服务将根据配置的升级策略执行升级：
+
+- **自动** : 当检测到新组件版本时，自动升级会立即触发。
+- **手动** : 在启动升级过程之前，需要手动批准。
