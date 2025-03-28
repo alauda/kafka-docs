@@ -1,6 +1,6 @@
 title: Alauda Streaming Service for Kafka
 logoText: Alauda Streaming Service for Kafka
-lang: zh
+lang: en
 api:
   crds:
     - docs/shared/crds/*.yaml
