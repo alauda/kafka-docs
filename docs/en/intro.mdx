@@ -1,11 +1,12 @@
 ---
 weight: 10
-sourceSHA: a1e21bc307c8e21b4cefbae8a4b60252c3265215bf597065d14171c57cef8d92
+i18n:
+  title:
+    zh: 介绍
+title: Introduction
 ---
 
-# Introduction
-
-## What is Kafka?
+## Kafka Introduction
 
 **Kafka** is a distributed stream processing platform known for its high throughput, low latency, scalability, and fault tolerance. As a distributed message queue, Kafka efficiently transports and stores large volumes of data between different systems. It supports various data formats and can handle real-time data streams, widely used in log collection, event-driven architectures, real-time analytics, data integration, and many other fields. Kafka employs a distributed architecture with core components including Producers, Consumers, Topics, and Brokers, and ensures data reliability and high availability through partitioning and replication mechanisms. 
 
@@ -14,11 +15,11 @@ In terms of deployment modes, it supports:
 - **ZooKeeper (ZK) mode**: The traditional mode, relying on ZooKeeper to manage cluster metadata.
 - **Kraft mode**: Coming soon.
 
-## What is Alauda Streaming Service for Kafka?
+## Alauda Streaming Service for Kafka Introduction
 
 **Alauda Streaming Service for Kafka** is a deeply optimized solution developed based on Kubernetes (K8s), providing convenience for the full lifecycle management of Kafka instances in Kubernetes clusters through controller (Operator). It extends the Kubernetes API to provide users with a declarative configuration approach, automating the operation and maintenance of Kafka clusters, allowing users to deploy, manage, and maintain Kafka clusters easily in a cloud-native manner, thereby meeting the stringent demands for stability, scalability, and efficiency in production environments.
 
-### Core Features
+### Key Features
 
 1. **ZooKeeper Mode Support**
    ZooKeeper maintains metadata information for the Kafka cluster, including node status, topic partition allocation, etc., ensuring stable operation and coordination of the cluster. Especially suitable for various sizes of production environments.
@@ -49,6 +50,6 @@ In terms of deployment modes, it supports:
    - **Rolling Scaling**: During scaling operations, a rolling method is used to gradually adjust the number of Kafka Broker nodes while automatically handling data redistribution and load balancing to ensure normal cluster operation and data consistency throughout the process.
    - **Zero-Downtime Upgrades**: When upgrading Kafka versions or changing configurations, individual nodes are updated sequentially, synchronizing data and verifying the operating status of new nodes to maintain service continuity and avoid impacting business operations.
 
-## Why Choose Alauda Streaming Service for Kafka
+## Alauda Streaming Service for Kafka Advantages
 
 Alauda Streaming Service for Kafka simplifies the complex operation and maintenance work of Kafka in Kubernetes environments, making the management of Kafka clusters intuitive and efficient through Kubernetes-native declarative configuration. It not only lowers the operational threshold for Kafka in cloud-native environments but also leverages the powerful capabilities of Kubernetes, providing users with a flexible, secure, and production-grade stable Kafka cluster management solution. Whether for beginners using Kafka for the first time or professional teams with high demands on large-scale Kafka cluster operations, it is an ideal choice.
