@@ -1,0 +1,348 @@
+---
+weight: 20
+sourceSHA: 6c26fe25c32a0ae79725f4fe4fca80de6bd3684f2e2526bd6d559edb91d2b616
+---
+
+# Выбор адреса соединения и настройка метода подключения
+
+При доступе бизнес-приложений к экземплярам Kafka существует несколько методов подключения. В этом разделе описывается, как выбрать адрес соединения, получить доступ к экземпляру Kafka через этот адрес и приводятся примеры.
+
+## Описание методов подключения, предоставляемых сервером, и применимых сценариев
+
+При создании экземпляра Kafka сервер предоставит различные комбинации ссылок доступа с соответствующими описаниями параметров:
+
+- **Внутренний/внешний доступ**: Находятся ли приложение и сервер Kafka в одном бизнес-кластере.
+- **Механизм аутентификации**: Включена ли аутентификация для проверки идентичности клиентов. Механизмы аутентификации поддерживают протоколы SCRAM-SHA-512 и TLS (Примечание: механизм аутентификации TLS поддерживает включение только по зашифрованному передающему каналу TLS).
+- **Шифрование передачи**: Обеспечивает безопасность данных во время передачи, используя технологии шифрования данных, чтобы предотвратить перехват или прослушивание данных во время сетевой передачи. Протокол шифрования передачи — это обычно TLS.
+
+| Метод доступа | Механизм аутентификации                    | Шифрование передачи | Применимые сценарии                                                                                                                                                                            |
+| ------------- | ------------------------------------------ | -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Внутренний   | Отключено                                 | Отключено            | Сценарий тестирования                                                                                                                                                                          |
+| Внутренний   | Отключено                                 | Включено             | Сценарий тестирования                                                                                                                                                                          |
+| Внутренний   | Включена SCRAM-SHA-512 (рекомендуется)    | Отключено            | Доступ через внутреннюю сеть, сообщения передаются без шифрования, но для отправки и получения сообщений требуется аутентификация.                                                           |
+| Внутренний   | Включена SCRAM-SHA-512 или TLS (более безопасно) | Включено             | Доступ через внутреннюю сеть, сообщения передаются с шифрованием, и требуется аутентификация для отправки и получения сообщений. (Выше безопасность, быстродействие может быть затронуто)     |
+| Внешний      | Отключено                                 | Отключено            | Не рекомендуется                                                                                                                                                                               |
+| Внешний      | Отключено                                 | Включено             | Сценарий тестирования                                                                                                                                                                          |
+| Внешний      | Включена SCRAM-SHA-512                   | Отключено            | Доступ через внешнюю сеть, сообщения передаются без шифрования                                                                                                                               |
+| Внешний      | Включена SCRAM-SHA-512 или TLS (рекомендуется) | Включено             | Доступ через внешнюю сеть, сообщения передаются с шифрованием, и требуется аутентификация для отправки и получения сообщений. (Выше безопасность, быстродействие может быть затронуто)     |
+
+## Описание конфигурации клиента
+
+При подключении клиент должен выбрать соответствующую ссылку и настроить соответствующие параметры на основе следующей информации:
+
+| Параметр                           | Клиент                                                                                                                                                       |
+| ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Шифрование передачи                | Если клиенту необходимо использовать зашифрованный канал, он должен использовать соответствующий порт и настроить сертификат протокола TLS.                  |
+| Аутентификация и авторизация       | Если аутентификация включена для экземпляра Kafka, клиент должен настроить соответствующего пользователя, пароль или сертификат для протокола.              |
+| Внутреннее/внешнее соединение      | Приложение выбирает необходимый адрес соединения в зависимости от его расположения.                                                                          |
+
+Мы демонстрируем несколько типов доступных ссылок (Java-клиент), где другие комбинации могут быть настроены соответственно на основе соответствующей ссылки:
+
+- Внутренний доступ, без аутентификации, не зашифрованная передача
+- Внутренний доступ, с аутентификацией (протокол TLS), зашифрованная передача
+- Внешний доступ, с аутентификацией (протокол SCRAM-SHA-512), не зашифрованная передача
+- Внешний доступ, с аутентификацией (протокол SCRAM-SHA-512), зашифрованная передача
+- Внешний доступ, с аутентификацией (протокол TLS), зашифрованная передача
+
+---
+
+### 1. Внутренний доступ - Без аутентификации, не зашифрованная передача
+
+На данном этапе клиент и экземпляр Kafka находятся в одном бизнес-кластере. Поскольку сервер Kafka не включил аутентификацию, процесс передачи не требует шифрования. Клиенту необходимо только получить внутренний маршрут экземпляра Kafka.
+
+Вы можете скопировать адрес соединения для "Доступ внутри кластера - Обычная передача" в вкладке 【Метод доступа к экземпляру Kafka】 и заменить его в реальном фрагменте кода.
+
+Пример кода подключения клиента выглядит следующим образом:
+
+```
+package com.lanzhiwang.producer;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) {
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9092");
+        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        // ProducerRecord(String topic, K key, V value)
+        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+            // Игнорируйте возвращаемое значение, нет способа узнать, было ли сообщение отправлено успешно или нет.
+            producer.send(record);
+            // Thread.sleep(2000000); // Задержка на 2000 секунд
+        } catch (Exception e) {
+            // Если у продюсера возникли ошибки перед отправкой сообщения в Kafka.
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 2. Внутренний доступ - С аутентификацией (протокол TLS), зашифрованная передача
+
+На данном этапе клиент и экземпляр Kafka находятся в одном бизнес-кластере. Поскольку сервер Kafka включил аутентификацию, процесс передачи необходимо зашифровать. Клиенту необходимо получить внутренний адрес маршрута экземпляра Kafka, сертификат пользователя и пароля для протокола TLS, а также сертификат для передачи.
+
+1. Внутренний адрес маршрута экземпляра Kafka
+
+   Вы можете скопировать адрес соединения для "Доступ внутри кластера - Передача TLS" в вкладке 【Метод доступа к экземпляру Kafka】 и заменить его в реальном фрагменте кода.
+
+2. Передача по протоколу TLS и сертификат пароля
+
+   Используйте команду kubectl для генерации сертификатов пользователя и пароля, и скопируйте соответствующие сертификаты в соответствующие пути на клиенте. Конкретные команды следующие:
+
+   - Генерация сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     ```
+
+   - Генерация пароля сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     ```
+
+3. Сертификат пользователя и пароля для протокола TLS
+
+   Используйте команду kubectl для генерации сертификата для передачи и пароля, и скопируйте соответствующие сертификаты в соответствующие пути на клиенте. Конкретные команды следующие:
+
+   - Генерация сертификата пользователя:
+     ```
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+     ```
+
+   - Генерация пароля сертификата пользователя:
+     ```
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+     ```
+
+4. Пример кода подключения клиента выглядит следующим образом:
+
+```
+package com.lanzhiwang.producer;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) {
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9093");
+        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        // Настройка свойств TLS/SSL
+        kafkaProps.put("security.protocol", "SSL");
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        kafkaProps.put("ssl.truststore.password", "************");
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+        kafkaProps.put("ssl.keystore.password", "************");
+        // Внутренний доступ не требует настройки, настройка для включения TLS на nodeport
+        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+        // ProducerRecord(String topic, K key, V value)
+        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+            // Игнорируйте возвращаемое значение, нет способа узнать, было ли сообщение отправлено успешно или нет.
+            producer.send(record);
+            // Thread.sleep(2000000); // Задержка на 2000 секунд
+        } catch (Exception e) {
+            // Если у продюсера возникли ошибки перед отправкой сообщения в Kafka.
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 3. Внешний доступ - С аутентификацией (протокол SCRAM-SHA-512), не зашифрованная передача
+
+На данном этапе клиент и экземпляр Kafka находятся в разных бизнес-кластерах. Поскольку сервер Kafka включил аутентификацию, процесс передачи не требует шифрования. Клиенту необходимо получить адрес внешнего доступа к экземпляру Kafka, а также имя пользователя и пароль по протоколу SCRAM-SHA-512.
+
+1. Вы можете скопировать адрес соединения для "Доступ извне кластера - Обычная передача" в вкладке 【Метод доступа к экземпляру Kafka】 и заменить его в реальном фрагменте кода.
+
+2. Вы можете использовать существующего пользователя или создать нового пользователя в вкладке 【Управление пользователями экземпляра Kafka】.
+
+3. Пример кода подключения клиента выглядит следующим образом:
+
+```
+package com.lanzhiwang.producer;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) {
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        // Настройка свойств SCRAM-SHA-512
+        kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
+        kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
+        kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
+        // ProducerRecord(String topic, K key, V value)
+        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+            // Игнорируйте возвращаемое значение, нет способа узнать, было ли сообщение отправлено успешно или нет.
+            producer.send(record);
+            // Thread.sleep(2000000); // Задержка на 2000 секунд
+        } catch (Exception e) {
+            // Если у продюсера возникли ошибки перед отправкой сообщения в Kafka.
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### 4. Внешний доступ - С аутентификацией (протокол SCRAM-SHA-512), зашифрованная передача
+
+На данном этапе клиент и экземпляр Kafka находятся в разных бизнес-кластерах. Поскольку сервер Kafka включил аутентификацию, процесс передачи необходимо зашифровать. Клиенту необходимо получить адрес внешнего доступа к экземпляру Kafka, имя пользователя и пароль по протоколу SCRAM-SHA-512, а также сертификат для передачи по протоколу TLS.
+
+1. Вы можете скопировать адрес соединения для "Доступ извне кластера - Обычная передача" в вкладке 【Метод доступа к экземпляру Kafka】 и заменить его в реальном фрагменте кода.
+
+2. Вы можете использовать существующего пользователя или создать нового пользователя в вкладке 【Управление пользователями экземпляра Kafka】.
+
+3. Сертификат для передачи по протоколу TLS и сертификат пароля
+
+   Используйте команду kubectl для генерации сертификатов пользователя и пароля, и скопируйте соответствующие сертификаты в соответствующие пути на клиенте. Конкретные команды следующие:
+
+   - Генерация сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     ```
+
+   - Генерация пароля сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     ```
+
+4. Пример кода подключения клиента выглядит следующим образом:
+
+```
+package com.lanzhiwang.producer;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) {
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        kafkaProps.put("security.protocol", "SASL_SSL");
+        kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
+        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+        kafkaProps.put("ssl.truststore.password", "************");
+        kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
+        // Внутренний доступ не требует настройки, настройка для включения TLS на nodeport
+        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+        // ProducerRecord(String topic, K key, V value)
+        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+            // Игнорируйте возвращаемое значение, нет способа узнать, было ли сообщение отправлено успешно или нет.
+            producer.send(record);
+            // Thread.sleep(2000000); // Задержка на 2000 секунд
+        } catch (Exception e) {
+            // Если у продюсера возникли ошибки перед отправкой сообщения в Kafka.
+            e.printStackTrace();
+        }
+    }
+}
+```
+
+### Внешний доступ - С аутентификацией (протокол TLS), зашифрованная передача
+
+На данном этапе клиент и экземпляр Kafka находятся в разных бизнес-кластерах. Поскольку сервер Kafka включил аутентификацию, процесс передачи необходимо зашифровать. Клиенту необходимо получить адрес внешнего доступа к экземпляру Kafka, а также имя пользователя и пароль по протоколу SCRAM-SHA-512, и сертификат для передачи по протоколу TLS.
+
+1. Вы можете скопировать адрес соединения для "Доступ извне кластера - Обычная передача" в вкладке 【Метод доступа к экземпляру Kafka】 и заменить его в реальном фрагменте кода.
+
+2. Сертификат для передачи по протоколу TLS и сертификат пароля
+
+   Используйте команду kubectl для генерации сертификатов пользователя и пароля, и скопируйте соответствующие сертификаты в соответствующие пути на клиенте. Конкретные команды следующие:
+
+   - Генерация сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+     ```
+
+   - Генерация пароля сертификата CA:
+     ```
+     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+     ```
+
+3. Сертификат пользователя и пароля для протокола TLS
+
+   Используйте команду kubectl для генерации сертификата для передачи и пароля, и скопируйте соответствующие сертификаты в соответствующие пути на клиенте. Конкретные команды следующие:
+
+   - Генерация сертификата пользователя:
+     ```
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+     ```
+
+   - Генерация пароля сертификата пользователя:
+     ```
+     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+     ```
+
+4. Пример кода подключения клиента выглядит следующим образом:
+
+```
+package com.lanzhiwang.producer;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) {
+
+        Properties kafkaProps = new Properties();
+        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        // Настройка свойств TLS/SSL
+        kafkaProps.put("security.protocol", "SSL");
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+        kafkaProps.put("ssl.truststore.password", "************");
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+        kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
+        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+        kafkaProps.put("ssl.keystore.password", "************");
+        // Внутренний доступ не требует настройки, настройка для включения TLS на nodeport
+        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+        // ProducerRecord(String topic, K key, V value)
+        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+            // Игнорируйте возвращаемое значение, нет способа узнать, было ли сообщение отправлено успешно или нет.
+            producer.send(record);
+            // Thread.sleep(2000000); // Задержка на 2000 секунд
+        } catch (Exception e) {
+            // Если у продюсера возникли ошибки перед отправкой сообщения в Kafka.
+            e.printStackTrace();
+        }
+    }
+}
+```
