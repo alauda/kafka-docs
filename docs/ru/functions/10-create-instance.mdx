@@ -1,0 +1,342 @@
+---
+weight: 10
+sourceSHA: 72db0d20181ff99d28b3f9964b1897bbdf598ca11841692c502e92cccaf52f27
+---
+
+# Создать экземпляр
+
+Вы можете создать экземпляр Kafka для построения канала передачи данных в реальном времени с высокой пропускной способностью и низкой задержкой, чтобы поддержать разнообразные потребности бизнес-систем в таких сценариях, как обработка потоковых данных и декомпозиция сервисов.
+
+## Создать экземпляр Kafka
+
+### Процедура
+
+<Tabs>
+  <Tab label="CLI">
+    Создайте экземпляр Kafka через CLI:
+
+    ```bash
+    cat << EOF | kubectl -n default create -f -
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafka
+    metadata:
+      name: my-cluster
+    spec:
+      entityOperator:
+        topicOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        userOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        tlsSidecar:
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+      version: 3.8
+      replicas: 3
+      config:
+        auto.create.topics.enable: "false"
+        auto.leader.rebalance.enable: "true"
+        background.threads: "10"
+        compression.type: producer
+        default.replication.factor: "3"
+        delete.topic.enable: "true"
+        log.retention.hours: "168"
+        log.roll.hours: "168"
+        log.segment.bytes: "1073741824"
+        message.max.bytes: "1048588"
+        min.insync.replicas: "1"
+        num.io.threads: "8"
+        num.network.threads: "3"
+        num.recovery.threads.per.data.dir: "1"
+        num.replica.fetchers: "1"
+        unclean.leader.election.enable: "false"
+      resources:
+        limits:
+          cpu: 2
+          memory: 4Gi
+        requests:
+          cpu: 2
+          memory: 4Gi
+      storage:
+        size: 1Gi
+        # Замените на доступный класс хранения
+        class: local-path
+        deleteClaim: false
+      kafka:
+        listeners:
+          plain: {}
+          external:
+            type: nodeport
+            tls: false
+      zookeeper:
+        # В настоящее время тот же, что и брокер Kafka
+        replicas: 3
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+        # Хранение остается тем же, что и у брокера Kafka
+        storage:
+          size: 1Gi
+          # Замените на доступный класс хранения
+          class: local-path
+          deleteClaim: false
+    EOF
+    ```
+  </Tab>
+
+  <Tab label="Веб-консоль">
+    1. Нажмите на **Kafka** в левой боковой панели.
+
+    2. Нажмите на ***Имя пространства имен***.
+
+    3. Нажмите на **Создать экземпляр Kafka**.
+
+    4. Завершите соответствующие настройки, следуя приведенным ниже инструкциям.
+
+           <table border="">
+             <tr>
+               <th style={{width: '100px'}}>Конфигурация</th>
+               <th style={{width: '130px'}}>Параметры конфигурации</th>
+               <th>Описание</th>
+             </tr>
+
+             <tr>
+               <td><b>Конфигурация параметров</b></td>
+               <td><b>Шаблон параметров</b></td>
+               <td>Вы можете выбрать системный или пользовательский шаблон параметров. Для пользовательских шаблонов параметров, пожалуйста, обратитесь к <a href="/appservice/unified-om/para-template/custom-template">Шаблону параметров</a>.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Узлы Kafka</b></td>
+               <td><b>Количество узлов брокера</b></td>
+               <td>Чтобы обеспечить высокую доступность брокера, каждый брокер будет запланирован на разные узлы в кластере.</td>
+             </tr>
+
+             <tr>
+               <td><b>Класс хранения</b></td>
+               <td>Если в выпадающем списке нет доступного класса хранения, пожалуйста, свяжитесь с администратором платформы для его добавления.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Метод доступа</b></td>
+               <td><b>Метод аутентификации</b></td>
+               <td>Чтобы обеспечить безопасную передачу данных, рекомендуется включить зашифрованную аутентификацию. Например: метод прослушивания как TLS, метод аутентификации как SCRAM - SHA - 512.</td>
+             </tr>
+
+             <tr>
+               <td><b>Указать порт хоста</b></td>
+               <td>Когда вы используете NodePort для доступа к кластеру и открываете указанный порт хоста, вы можете указать номер порта службы. <br /><b>Примечание</b>: При обновлении экземпляра порты не могут быть взаимозаменяемыми. Если вам нужно поменять порты, сначала обновите на другой незанятый порт, а затем укажите снова.</td>
+             </tr>
+
+             <tr>
+               <td rowspan="2"><b>Конфигурация планирования</b></td>
+               <td><b>Метка узла</b></td>
+               <td>Фильтруйте доступные узлы в текущем кластере по меткам. Под управлением будут запланированы на доступные узлы. <br /><b>Примечание</b>: После создания экземпляра эта конфигурация больше не может быть изменена.</td>
+             </tr>
+
+             <tr>
+               <td><b>Допуски пода</b></td>
+               <td>Если доступные узлы имеют примеси, только поды, у которых установлены допуски, будут терпеть эти примеси и могут быть запланированы на узлы, которые соответствуют допуску пода и примесам узла. Правила соответствия следующие. <ul><li><b>Равно</b>: Когда <i>ключ</i>, <i>значение</i>, <i>эффект</i> допуска пода полностью совпадают со значениями, установленными в примесах узла, под будет терпеть примеси узла.</li><li><b>Существует</b>: Когда <i>ключ</i>, <i>эффект</i> допуска пода совпадают со значениями в примесах узла, под будет терпеть примеси узла.</li></ul> <br /><b>Описание</b>: Эффект определяет, будут ли поды, которые не терпят примеси узла, назначаться на узлы, имеющие эти примеси. Например, эффект NoExecute указывает, что только поды, которые терпят примеси (включая поды из этого экземпляра Kafka), могут быть запланированы, и будут исключены уже работающие поды на этом узле, но не терпящие примеси (из других экземпляров). Для получения дополнительной информации о правилах соответствия обратитесь к <a href="https://kubernetes.io/docs/concepts/scheduling-eviction/taint-and-toleration/">Официальной документации Kubernetes</a>.</td>
+             </tr>
+           </table>
+
+    5. Нажмите на **Создать**.
+
+       Когда статус экземпляра изменится на **Работает**, экземпляр был успешно создан.
+  </Tab>
+</Tabs>
+
+После создания экземпляра вы можете проверить статус экземпляра с помощью следующей команды:
+
+```bash
+$ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
+NAME         VERSION   STATUS   MESSAGE                                   CreationTimestamp
+my-cluster   3.8       Active   <none>                                    2025-03-06T08:46:57Z
+test38       3.8       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
+```
+
+Значения полей таблицы вывода следующие:
+
+| Поле             | Описание                                                                                                                                                                                                                                                                                                                                                                                                             |
+| :---------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| NAME              | Имя экземпляра                                                                                                                                                                                                                                                                                                                                                                                                           |
+| VERSION           | В настоящее время поддерживает только эти 4 версии: `2.5.0`, `2.7.0`, `2.8.2`, `3.8`                                                                                                                                                                                                                                                                                                                                              |
+| STATUS            | Текущий статус экземпляра, который может иметь следующие состояния: <ul><li>`Создание`: Экземпляр создается</li><li>`Обновление`: Экземпляр обновляется</li><li>`Ошибка`: Экземпляр столкнулся с необратимой ошибкой</li><li>`Приостановлено`: Экземпляр был вручную приостановлен</li><li>`Перезагрузка`: Экземпляр перезагружается</li><li>`Активен`: Экземпляр готов к использованию</li></ul> |
+| MESSAGE           | Причина текущего статуса экземпляра                                                                                                                                                                                                                                                                                                                                                                            |
+| CreationTimestamp | Временная метка, когда был создан экземпляр                                                                                                                                                                                                                                                                                                                                                                             |
+
+## Создать одноброкерный экземпляр Kafka \{#create-single-node-kafka-instance}
+
+<Directive type="warning" title="Важно">
+  Рекомендуется установить количество узлов брокера на **3** при создании экземпляра. Если количество узлов брокера меньше рекомендованного значения **3**, вам нужно будет изменить определенные параметры во время создания.
+</Directive>
+
+### Процедура
+
+<Tabs>
+  <Tab label="CLI">
+    Создайте одноброкерный экземпляр Kafka через CLI:
+
+    ```bash
+    cat << EOF | kubectl -n default create -f -
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafka
+    metadata:
+      name: my-cluster
+    spec:
+      entityOperator:
+        topicOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        userOperator:
+          resources:
+            limits:
+              cpu: 1
+              memory: 2Gi
+            requests:
+              cpu: 1
+              memory: 2Gi
+        tlsSidecar:
+          resources:
+            limits:
+              cpu: 200m
+              memory: 128Mi
+            requests:
+              cpu: 200m
+              memory: 128Mi
+      version: 3.8
+      replicas: 1
+      config:
+        auto.create.topics.enable: "false"
+        auto.leader.rebalance.enable: "true"
+        background.threads: "10"
+        compression.type: producer
+        delete.topic.enable: "true"
+        log.retention.hours: "168"
+        log.roll.hours: "168"
+        log.segment.bytes: "1073741824"
+        message.max.bytes: "1048588"
+        min.insync.replicas: "1"
+        num.io.threads: "8"
+        num.network.threads: "3"
+        num.recovery.threads.per.data.dir: "1"
+        num.replica.fetchers: "1"
+        unclean.leader.election.enable: "false"
+        ## Убедитесь, что следующие параметры конфигурации верны
+        default.replication.factor: "1"
+        offsets.topic.replication.factor: 1
+        transaction.state.log.replication.factor: 1
+        transaction.state.log.min.isr: 1
+      resources:
+        limits:
+          cpu: 2
+          memory: 4Gi
+        requests:
+          cpu: 2
+          memory: 4Gi
+      storage:
+        size: 1Gi
+        # Замените на доступный класс хранения
+        class: local-path
+        deleteClaim: false
+      kafka:
+        listeners:
+          plain: {}
+          external:
+            type: nodeport
+            tls: false
+      zookeeper:
+        # В настоящее время тот же, что и брокер Kafka
+        replicas: 1
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+        # Хранение остается тем же, что и у брокера Kafka
+        storage:
+          size: 1Gi
+          # Замените на доступный класс хранения
+          class: local-path
+          deleteClaim: false
+    EOF
+    ```
+  </Tab>
+
+  <Tab label="Веб-консоль">
+    1. Нажмите на **Kafka** в левой боковой панели.
+
+    2. Нажмите на ***Имя пространства имен***.
+
+    3. Нажмите на **Создать экземпляр Kafka**.
+
+    4. Нажмите на **Развернуть параметры экземпляра** и установите следующие значения параметров на **1**:
+
+           <table border="">
+             <tr>
+               <th style={{width: '150px'}}>Параметр</th>
+               <th>Значение конфигурации</th>
+               <th>Описание</th>
+             </tr>
+
+             <tr>
+               <td>`default.replication.factor`</td>
+               <td>1</td>
+               <td>Фактор репликации для автоматически создаваемых тем</td>
+             </tr>
+
+             <tr>
+               <td>`offsets.topic.replication.factor`</td>
+               <td>1</td>
+               <td>Фактор репликации для темы смещения</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.replication.factor`</td>
+               <td>1</td>
+               <td>Фактор репликации для журнала состояния транзакций</td>
+             </tr>
+
+             <tr>
+               <td>`transaction.state.log.min.isr`</td>
+               <td>1</td>
+               <td>Минимальное количество реплик в состояниях для журнала состояния транзакций</td>
+             </tr>
+           </table>
+
+    5. Завершите другие параметры конфигурации.
+
+    6. Переключитесь на страницу редактирования YAML и измените значения `spec.replicas` и `spec.zookeeper.replicas` на 1.
+
+    7. Нажмите на **Создать**.
+
+       Когда статус экземпляра изменится на **Работает**, экземпляр был успешно создан.
+  </Tab>
+</Tabs>
