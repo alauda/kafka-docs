@@ -22,17 +22,12 @@ The ZooKeeper coordination mode is the traditional distributed coordination impl
 
 ![kafka zk arch](./assets/zk_arch.png)
 
-### Core Components
+## KRaft Mode
 
-1. **ZooKeeper Cluster**\
-   A highly available cluster consisting of an odd number of nodes, responsible for the following tasks:
-   - Broker registration and health monitoring.
-   - Controller election and failover.
-   - Topic/partition metadata storage.
-   - Consumer group offset management (deprecated versions).
+KRaft mode is Kafka's next-generation metadata management system, which replaces ZooKeeper with Kafka's native Raft-based consensus protocol. This mode offers the following characteristics:
 
-2. **Kafka Broker Cluster**\
-   A messaging processing cluster composed of multiple Broker nodes:
-   - Each Broker registers with ZooKeeper upon startup.
-   - Partition leader elections are conducted via the controller.
-   - Supports horizontal scaling, increasing throughput by adding Brokers.
+- **Simplified Architecture**: Eliminates the external ZooKeeper dependency, reducing operational complexity.
+- **Enhanced Scalability**: Supports significantly more partitions (up to millions, compared to hundreds of thousands in ZooKeeper mode).
+- **Faster Controller Failover**: Achieves sub-second failover, a substantial improvement over ZooKeeper's multi-second failover latency.
+- **Stronger Consistency**: Ensures linearizable metadata operations, providing stronger consistency guarantees than the eventual consistency of ZooKeeper-based metadata.
+- **Flexible Deployment**: Supports both combined mode (unified processes acting as both brokers and controllers, suitable for small clusters) and dedicated mode (separate controller and broker processes, ideal for large-scale deployments).
