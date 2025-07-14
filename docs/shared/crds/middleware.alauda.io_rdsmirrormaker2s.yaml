@@ -1,0 +1,261 @@
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    controller-gen.kubebuilder.io/version: v0.17.0
+  name: rdsmirrormaker2s.middleware.alauda.io
+spec:
+  group: middleware.alauda.io
+  names:
+    kind: RdsMirrorMaker2
+    listKind: RdsMirrorMaker2List
+    plural: rdsmirrormaker2s
+    singular: rdsmirrormaker2
+  scope: Namespaced
+  versions:
+  - name: v1
+    schema:
+      openAPIV3Schema:
+        description: RdsMirrorMaker2 is the Schema for the rdsmirrormaker2 API
+        properties:
+          apiVersion:
+            description: |-
+              APIVersion defines the versioned schema of this representation of an object.
+              Servers should convert recognized schemas to the latest internal value, and
+              may reject unrecognized values.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources
+            type: string
+          kind:
+            description: |-
+              Kind is a string value representing the REST resource this object represents.
+              Servers may infer this from the endpoint the client submits requests to.
+              Cannot be updated.
+              In CamelCase.
+              More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: RdsMirrorMaker2Spec defines the desired state of RdsMirrorMaker2
+            properties:
+              clusters:
+                items:
+                  properties:
+                    authentication:
+                      properties:
+                        certificateAndKey:
+                          properties:
+                            certificate:
+                              type: string
+                            key:
+                              type: string
+                            secretName:
+                              type: string
+                          required:
+                          - certificate
+                          - key
+                          - secretName
+                          type: object
+                        passwordSecret:
+                          properties:
+                            password:
+                              type: string
+                            secretName:
+                              type: string
+                          required:
+                          - password
+                          - secretName
+                          type: object
+                        type:
+                          type: string
+                        username:
+                          type: string
+                      required:
+                      - type
+                      type: object
+                    bootstrapServers:
+                      type: string
+                    tls:
+                      properties:
+                        trustedCertificates:
+                          items:
+                            properties:
+                              pattern:
+                                type: string
+                              secretName:
+                                type: string
+                            required:
+                            - pattern
+                            - secretName
+                            type: object
+                          type: array
+                      required:
+                      - trustedCertificates
+                      type: object
+                  required:
+                  - bootstrapServers
+                  type: object
+                type: array
+              jvmOptions:
+                description: JVM options such as Xms and Xmx
+                properties:
+                  -Xms:
+                    description: The Xms field sets the JVM min heap size parameter
+                    type: string
+                  -Xmx:
+                    description: The Xmx field sets the JVM max heap size parameter
+                    type: string
+                type: object
+              logging:
+                properties:
+                  loggers:
+                    additionalProperties:
+                      type: string
+                    description: Loggers is a map from logger name to logger level.
+                    type: object
+                  type:
+                    description: Logging type , it must have the value inline
+                    type: string
+                required:
+                - loggers
+                - type
+                type: object
+              mirrors:
+                items:
+                  properties:
+                    checkpointConnector:
+                      properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        tasksMax:
+                          type: integer
+                      type: object
+                    groupsPattern:
+                      type: string
+                    sourceConnector:
+                      properties:
+                        config:
+                          additionalProperties:
+                            type: string
+                          type: object
+                        tasksMax:
+                          type: integer
+                      type: object
+                    topicsPattern:
+                      type: string
+                  type: object
+                type: array
+              replicas:
+                description: Number of replicas for MirrorMaker2 replica
+                type: integer
+              resources:
+                description: Resource requests/limits for pods
+                properties:
+                  claims:
+                    description: |-
+                      Claims lists the names of resources, defined in spec.resourceClaims,
+                      that are used by this container.
+
+                      This is an alpha field and requires enabling the
+                      DynamicResourceAllocation feature gate.
+
+                      This field is immutable. It can only be set for containers.
+                    items:
+                      description: ResourceClaim references one entry in PodSpec.ResourceClaims.
+                      properties:
+                        name:
+                          description: |-
+                            Name must match the name of one entry in pod.spec.resourceClaims of
+                            the Pod where this field is used. It makes that resource available
+                            inside a container.
+                          type: string
+                        request:
+                          description: |-
+                            Request is the name chosen for a request in the referenced claim.
+                            If empty, everything from the claim is made available, otherwise
+                            only the result of this request.
+                          type: string
+                      required:
+                      - name
+                      type: object
+                    type: array
+                    x-kubernetes-list-map-keys:
+                    - name
+                    x-kubernetes-list-type: map
+                  limits:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      Limits describes the maximum amount of compute resources allowed.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                    type: object
+                  requests:
+                    additionalProperties:
+                      anyOf:
+                      - type: integer
+                      - type: string
+                      pattern: ^(\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))(([KMGTPE]i)|[numkMGTPE]|([eE](\+|-)?(([0-9]+(\.[0-9]*)?)|(\.[0-9]+))))?$
+                      x-kubernetes-int-or-string: true
+                    description: |-
+                      Requests describes the minimum amount of compute resources required.
+                      If Requests is omitted for a container, it defaults to Limits if that is explicitly specified,
+                      otherwise to an implementation-defined value. Requests cannot exceed Limits.
+                      More info: https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/
+                    type: object
+                type: object
+            type: object
+          status:
+            description: RdsKafkaStatus defines the observed state of RdsKafka
+            properties:
+              conditions:
+                items:
+                  properties:
+                    lastTransitionTime:
+                      description: Last time the condition of a type changed from
+                        one status to another. The required format is 'yyyy-MM-ddTHH:mm:ssZ',
+                        in the UTC time zone.
+                      type: string
+                    message:
+                      description: Human-readable message indicating details about
+                        the condition’s last transition.
+                      type: string
+                    reason:
+                      description: The reason for the condition’s last transition
+                        (a single word in CamelCase).
+                      type: string
+                    status:
+                      description: The status of the condition, either True, False
+                        or Unknown.
+                      type: string
+                    type:
+                      description: The unique identifier of a condition, used to distinguish
+                        between other conditions in the resource.
+                      type: string
+                  type: object
+                type: array
+              lastUpdateTime:
+                format: date-time
+                type: string
+              phase:
+                description: |-
+                  INSERT ADDITIONAL STATUS FIELD - define observed state of cluster
+                  Important: Run "make" to regenerate code after modifying this file
+                type: string
+              reason:
+                type: string
+            required:
+            - lastUpdateTime
+            - phase
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
