@@ -76,7 +76,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
       storage:
         size: 1Gi
         # Replace with available storage class
-        class: local-path
+        class: sc-topolvm
         deleteClaim: false
       kafka:
         listeners:
@@ -84,22 +84,22 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
           external:
             type: nodeport
             tls: false
-      zookeeper:
-        # Currently the same as Kafka broker
-        replicas: 3
-        resources:
-          limits:
-            cpu: 1
-            memory: 2Gi
-          requests:
-            cpu: 1
-            memory: 2Gi
-        # Storage maintained the same as Kafka broker
-        storage:
-          size: 1Gi
-          # Replace with available storage class
-          class: local-path
-          deleteClaim: false
+	  mode: KRaft
+	  controller:
+	    replicas: 3
+	    resources:
+	  	limits:
+	  	  cpu: 1
+	  	  memory: 2Gi
+	  	requests:
+	  	  cpu: 1
+	  	  memory: 2Gi
+	    roles:
+	  	  - controller
+	    storage:
+	  	  size: 1Gi
+	  	  class: sc-topolvm
+	  	  deleteClaim: false
     EOF
     ```
   </Tab>
