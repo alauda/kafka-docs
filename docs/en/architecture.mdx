@@ -31,3 +31,5 @@ KRaft mode is Kafka's next-generation metadata management system, which replaces
 - **Faster Controller Failover**: Achieves sub-second failover, a substantial improvement over ZooKeeper's multi-second failover latency.
 - **Stronger Consistency**: Ensures linearizable metadata operations, providing stronger consistency guarantees than the eventual consistency of ZooKeeper-based metadata.
 - **Flexible Deployment**: Supports both combined mode (unified processes acting as both brokers and controllers, suitable for small clusters) and dedicated mode (separate controller and broker processes, ideal for large-scale deployments).
+
+![kafka kraft arch](./assets/kraft.png)
