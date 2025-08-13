@@ -122,47 +122,47 @@ At this point, the client and Kafka instance are located within the same busines
 
 4. The client connection code example is as follows:
 
-```
-package com.lanzhiwang.producer;
-import java.util.Properties;
+    ```
+    package com.lanzhiwang.producer;
+    import java.util.Properties;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+    import org.apache.kafka.clients.producer.KafkaProducer;
+    import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class ExampleProducer {
-    public static void main(String[] args) {
+    public class ExampleProducer {
+        public static void main(String[] args) {
 
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9093");
-        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            Properties kafkaProps = new Properties();
+            kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9093");
+            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        // Configure TLS/SSL properties
-        kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-        kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-        kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-        kafkaProps.put("ssl.keystore.password", "************");
-        // Internal access does not require configuration, configuration for enabling TLS on nodeport
-        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-        // ProducerRecord(String topic, K key, V value)
-        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+            // Configure TLS/SSL properties
+            kafkaProps.put("security.protocol", "SSL");
+            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+            kafkaProps.put("ssl.truststore.password", "************");
+            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+            kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
+            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+            kafkaProps.put("ssl.keystore.password", "************");
+            // Internal access does not require configuration, configuration for enabling TLS on nodeport
+            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+            // ProducerRecord(String topic, K key, V value)
+            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
 
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-            // Ignore the returned value, no way to know the message was sent successfully or not.
-            producer.send(record);
-            // Thread.sleep(2000000); // Delay 2000 seconds
-        } catch (Exception e) {
-            // If the producer encountered errors before sending the message to Kafka.
-            e.printStackTrace();
+            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+                // Ignore the returned value, no way to know the message was sent successfully or not.
+                producer.send(record);
+                // Thread.sleep(2000000); // Delay 2000 seconds
+            } catch (Exception e) {
+                // If the producer encountered errors before sending the message to Kafka.
+                e.printStackTrace();
+            }
         }
     }
-}
-```
+    ```
 
 ### 3. External Access - With Authentication (SCRAM-SHA-512 Protocol), Non-encrypted Transmission
 
@@ -174,39 +174,39 @@ At this point, the client and Kafka instance are located in different business c
 
 3. The client connection code example is as follows:
 
-```
-package com.lanzhiwang.producer;
-import java.util.Properties;
+    ```
+    package com.lanzhiwang.producer;
+    import java.util.Properties;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+    import org.apache.kafka.clients.producer.KafkaProducer;
+    import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class ExampleProducer {
-    public static void main(String[] args) {
+    public class ExampleProducer {
+        public static void main(String[] args) {
 
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            Properties kafkaProps = new Properties();
+            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        // Configure SCRAM-SHA-512 properties
-        kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
-        kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
-        kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
-        // ProducerRecord(String topic, K key, V value)
-        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+            // Configure SCRAM-SHA-512 properties
+            kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
+            kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
+            // ProducerRecord(String topic, K key, V value)
+            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
 
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-            // Ignore the returned value, no way to know the message was sent successfully or not.
-            producer.send(record);
-            // Thread.sleep(2000000); // Delay 2000 seconds
-        } catch (Exception e) {
-            // If the producer encountered errors before sending the message to Kafka.
-            e.printStackTrace();
+            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+                // Ignore the returned value, no way to know the message was sent successfully or not.
+                producer.send(record);
+                // Thread.sleep(2000000); // Delay 2000 seconds
+            } catch (Exception e) {
+                // If the producer encountered errors before sending the message to Kafka.
+                e.printStackTrace();
+            }
         }
     }
-}
-```
+    ```
 
 ### 4. External Access - With Authentication (SCRAM-SHA-512 Protocol), Encrypted Transmission
 
@@ -232,42 +232,42 @@ At this point, the client and Kafka instance are located in different business c
 
 4. The client connection code example is as follows:
 
-```
-package com.lanzhiwang.producer;
-import java.util.Properties;
+    ```
+    package com.lanzhiwang.producer;
+    import java.util.Properties;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+    import org.apache.kafka.clients.producer.KafkaProducer;
+    import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class ExampleProducer {
-    public static void main(String[] args) {
+    public class ExampleProducer {
+        public static void main(String[] args) {
 
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            Properties kafkaProps = new Properties();
+            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        kafkaProps.put("security.protocol", "SASL_SSL");
-        kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
-        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        kafkaProps.put("ssl.truststore.password", "************");
-        kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
-        // Internal access does not require configuration, configuration for enabling TLS on nodeport
-        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-        // ProducerRecord(String topic, K key, V value)
-        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+            kafkaProps.put("security.protocol", "SASL_SSL");
+            kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
+            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+            kafkaProps.put("ssl.truststore.password", "************");
+            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
+            // Internal access does not require configuration, configuration for enabling TLS on nodeport
+            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+            // ProducerRecord(String topic, K key, V value)
+            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
 
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-            // Ignore the returned value, no way to know the message was sent successfully or not.
-            producer.send(record);
-            // Thread.sleep(2000000); // Delay 2000 seconds
-        } catch (Exception e) {
-            // If the producer encountered errors before sending the message to Kafka.
-            e.printStackTrace();
+            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+                // Ignore the returned value, no way to know the message was sent successfully or not.
+                producer.send(record);
+                // Thread.sleep(2000000); // Delay 2000 seconds
+            } catch (Exception e) {
+                // If the producer encountered errors before sending the message to Kafka.
+                e.printStackTrace();
+            }
         }
     }
-}
-```
+    ```
 
 ### External Access - With Authentication (TLS Protocol), Encrypted Transmission
 
@@ -305,44 +305,44 @@ At this point, the client and Kafka instance are located in different business c
 
 4. The client connection code example is as follows:
 
-```
-package com.lanzhiwang.producer;
-import java.util.Properties;
+    ```
+    package com.lanzhiwang.producer;
+    import java.util.Properties;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+    import org.apache.kafka.clients.producer.KafkaProducer;
+    import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class ExampleProducer {
-    public static void main(String[] args) {
+    public class ExampleProducer {
+        public static void main(String[] args) {
 
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            Properties kafkaProps = new Properties();
+            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
+            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
 
-        // Configure TLS/SSL properties
-        kafkaProps.put("security.protocol", "SSL");
-        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-        kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-        // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-        kafkaProps.put("ssl.truststore.password", "************");
-        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-        kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-        // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-        kafkaProps.put("ssl.keystore.password", "************");
-        // Internal access does not require configuration, configuration for enabling TLS on nodeport
-        kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-        // ProducerRecord(String topic, K key, V value)
-        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+            // Configure TLS/SSL properties
+            kafkaProps.put("security.protocol", "SSL");
+            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
+            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
+            kafkaProps.put("ssl.truststore.password", "************");
+            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+            kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
+            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
+            kafkaProps.put("ssl.keystore.password", "************");
+            // Internal access does not require configuration, configuration for enabling TLS on nodeport
+            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
+            // ProducerRecord(String topic, K key, V value)
+            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
 
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-            // Ignore the returned value, no way to know the message was sent successfully or not.
-            producer.send(record);
-            // Thread.sleep(2000000); // Delay 2000 seconds
-        } catch (Exception e) {
-            // If the producer encountered errors before sending the message to Kafka.
-            e.printStackTrace();
+            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
+                // Ignore the returned value, no way to know the message was sent successfully or not.
+                producer.send(record);
+                // Thread.sleep(2000000); // Delay 2000 seconds
+            } catch (Exception e) {
+                // If the producer encountered errors before sending the message to Kafka.
+                e.printStackTrace();
+            }
         }
     }
-}
-```
+    ```
