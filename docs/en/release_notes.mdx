@@ -8,6 +8,23 @@ i18n:
 
 # Release Notes
 
+## v4.1.0
+
+### New and Optimized Features
+
+#### Kafka data transfer support
+
+Supports data transfer configuration through the Data Services view, using MirrorMaker 2 to achieve:
+- Supports viewing transfer status.
+- Supports monitoring and alert metrics.
+- Supports MirrorMaker 2 configuration and management.
+
+#### Kraft mode support
+
+Supports the creation of KRaft mode instances (3.x versions only). Kraft mode will gradually replace ZooKeeper mode.
+A migration plan from ZooKeeper mode to Kraft mode is available.([migrate to kraft](../how_to/50-migrate-to-kraft.mdx))
+
+
 ## v4.0.0
 
 ### New and Optimized Features
