@@ -1,0 +1,54 @@
+---
+weight: 50
+---
+
+# Migrate from ZooKeeper to KRaft Mode
+
+Starting from Kafka 4.0, ZooKeeper mode will no longer be supported. The operator will also remove support for ZooKeeper mode in future versions. It is recommended to migrate your Kafka instances to KRaft mode as soon as possible.
+
+ <Directive type="warning" title="Migration Considerations">
+ - **Service Interruption**: The migration process may cause temporary service interruptions.
+ - **Connection Changes**: After migration, pod names and service (svc) names will change, which may cause connection addresses to shift. It is critical to update the access addresses of your instances promptly post-migration.If you connect to the Kafka instance using the bootstrap or external-bootstrap services, the access address will remain unchanged and no updates are needed.
+ - **Irreversible**: Once migrated to KRaft, rolling back to ZooKeeper mode is not supported
+ </Directive>
+
+## Prerequisites
+
+- Kafka version must be **3.8** or higher
+- Notify consumers/producers about potential temporary disruptions
+- Ensure the Kafka cluster is healthy and fully operational
+
+## Migration Steps
+
+<Tabs>
+  <Tab label="CLI">
+1. Patch the Kafka instance to switch to KRaft mode:
+    ```bash
+    kubectl patch rdsKafka <name> -n <namespace> --type=merge -p '{"spec":{"mode":"KRaft"}}'
+    ```
+2. Monitor the migration status:
+    ```bash
+    kubectl get rdsKafka <name> -n <namespace> -o jsonpath='{.status.phase}'
+    ```
+    The status will progress through:
+    - `Migrating`: Migration in progress
+    - `Active`: Migration completed successfully
+  </Tab>
+
+</Tabs>
+
+## Post-Migration Steps
+
+ <Directive type="warning" title="Migration Considerations">
+If your applications are not using the **bootstrap** or **external-bootstrap** services (e.g., whether Internal access or External access, they are using IPs and ports associated with `<name>-kafka-<i>.<namespace>.svc.cluster.local`), you must update their connection configurations.
+ </Directive>
+
+1. **Validate Client Connectivity & Data Integrity**:
+   - Verify that all producer and consumer applications can connect to the Kafka cluster successfully (check logs for connection errors, timeouts, or authentication issues).
+   - Perform test production/consumption: Send test messages through producers and confirm they are received by consumers without data loss or corruption.
+   - Validate that core business topics are accessible and retain all pre-migration data.
+
+2. **Monitor Performance**:
+   - Keep an eye on controller performance
+   - Monitor partition handling and metadata operations
+

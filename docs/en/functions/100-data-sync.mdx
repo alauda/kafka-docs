@@ -1,0 +1,183 @@
+---
+ weight: 170
+ i18n:
+   title:
+     en: Data Synchronization
+ title: Data Synchronization
+---
+
+# Data Synchronization
+
+Data Synchronization uses MirrorMaker2 to configure this Kafka instance as a target cluster for replicating data from source Kafka clusters. MirrorMaker2 preserves topics, consumer groups, and offsets while maintaining partitioning during the replication process.
+
+ <Directive type="tip" title="Prerequisites">
+ -  The target Kafka cluster (this instance) should be empty before configuring replication to avoid conflicts.
+ - Source and target Kafka clusters must be running
+ - Network connectivity between clusters
+ - Appropriate ACLs configured if security enabled
+ </Directive>
+
+ ## Configure Data Synchronization
+
+ <Tabs>
+   <Tab label="CLI">
+     Turn on synchronization via CLI:
+
+     ```bash
+     cat << EOF | kubectl -n default create -f -
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsMirrorMaker2
+    metadata:
+      labels:
+        middleware.alauda.io/cluster: my-cluster
+      name: rdsmm2-sample
+    spec:
+      replicas: 2
+      clusters:
+        - bootstrapServers: source-cluster-kafka-bootstrap.yh-test:9093
+      mirrors:
+          - topicsPattern: ".*"
+            groupsPattern: ".*"
+            sourceConnector:
+              tasksMax: 5
+              config:
+                replication.factor: '1'
+                offset-syncs.topic.replication.factor: '1'
+                sync.topic.acls.enabled: "false"
+                refresh.topics.interval.seconds: '60'
+                replication.policy.class: "org.apache.kafka.connect.mirror.IdentityReplicationPolicy"
+            checkpointConnector:
+              config:
+                checkpoints.topic.replication.factor: '1'
+                refresh.groups.interval.seconds: '600'
+                sync.group.offsets.enabled: 'true'
+                sync.group.offsets.interval.seconds: '60'
+                emit.checkpoints.interval.seconds: '60'
+                replication.policy.class: "org.apache.kafka.connect.mirror.IdentityReplicationPolicy"
+      resources:
+        limits:
+          cpu: 1
+          memory: 2Gi
+        requests:
+          cpu: 1
+          memory: 2Gi
+
+     EOF
+     ```
+   </Tab>
+   <Tab label="Web Console">
+     1. Navigate to **Kafka** in the left menu
+     2. Select the target namespace
+     3. Choose the target Kafka instance that will receive the replicated data
+     4. Go to the **Data synchronization** tab and click **Enable data synchronization**
+     5. Configure source cluster information:
+        - Bootstrap servers
+        - Authentication credentials
+        - Authorization settings
+     6. Complete MirrorMaker2 configurations:
+        - Replication settings
+        - Resource allocation (CPU/Memory)
+        - Task count
+        - MirrorMaker2 config
+        - Topics patterns (e.g. ".*" for all topics)
+     7. Click **Turn on synchronization** to begin data replication
+   </Tab>
+ </Tabs>
+
+
+ ## Monitoring Mirroring
+
+After successful creation, you can monitor the data synchronization in the Web Console:
+
+ 1. Navigate to the **Data synchronization** tab of your Kafka instance
+ 2. View details in two sections:
+    - **MirrorMaker2 Configuration**: Shows all configuration details including:
+      - Source and target cluster information
+      - Replication settings
+      - Resource allocation
+    - **Topology**: Displays the transmission status
+ 3. For detailed metrics:
+    - Click the **Monitoring** button next to "Transmission status"
+    - View real-time metrics in the monitoring dashboard
+
+
+ <Directive type="warning" title="Important Notes">
+ 1. Monitor replication lag metrics in Dashboard
+ 2. During upgrades, plan for brief replication pauses
+ </Directive>
+
+  ## Key Configuration Parameters
+
+  ### Source Connector Configuration
+  <table border="">
+    <tr>
+      <th style={{width: '250px'}}>Parameter</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+    <tr>
+      <td><code>replication.factor</code></td>
+      <td>Replication factor for mirrored topics (-1 uses cluster default)</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <td><code>offset-syncs.topic.replication.factor</code></td>
+      <td>Replication factor for offset sync topic (-1 uses cluster default)</td>
+      <td>-1</td>
+    </tr>
+    <tr>
+      <td><code>sync.topic.acls.enabled</code></td>
+      <td>Whether to sync ACLs (fixed to false when user-operator is enabled)</td>
+      <td>false</td>
+    </tr>
+    <tr>
+      <td><code>refresh.topics.interval.seconds</code></td>
+      <td>Frequency to check for new topics (in seconds)</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <td><code>replication.policy.class</code></td>
+      <td>Replication policy class</td>
+      <td>org.apache.kafka.connect.mirror.IdentityReplicationPolicy</td>
+    </tr>
+  </table>
+
+  ### Checkpoint Connector Configuration
+  <table border="">
+    <tr>
+      <th style={{width: '250px'}}>Parameter</th>
+      <th>Description</th>
+      <th>Default</th>
+    </tr>
+    <tr>
+      <td><code>checkpoints.topic.replication.factor</code></td>
+      <td>Replication factor for checkpoints topic</td>
+      <td>3</td>
+    </tr>
+    <tr>
+      <td><code>refresh.groups.interval.seconds</code></td>
+      <td>Frequency to check for new consumer groups (in seconds)</td>
+      <td>600</td>
+    </tr>
+    <tr>
+      <td><code>sync.group.offsets.enabled</code></td>
+      <td>Whether to sync consumer group offsets</td>
+      <td>true</td>
+    </tr>
+    <tr>
+      <td><code>sync.group.offsets.interval.seconds</code></td>
+      <td>Frequency to sync consumer group offsets (in seconds)</td>
+      <td>60</td>
+    </tr>
+    <tr>
+      <td><code>emit.checkpoints.interval.seconds</code></td>
+      <td>Frequency to emit offset tracking checkpoints (in seconds)</td>
+      <td>60</td>
+    </tr>
+  </table>
+
+  <Directive type="note" title="Important Notes">
+  1. <code>sync.topic.acls.enabled</code> is forced to false when user-operator is enabled
+  2. <code>replication.policy.class</code> uses IdentityReplicationPolicy to preserve original topic names
+  3. -1 values for replication factors will use the cluster's default settings
+  </Directive>
