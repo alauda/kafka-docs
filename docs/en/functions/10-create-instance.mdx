@@ -112,7 +112,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
 
     4. Complete the relevant configurations with the following instructions.
 
-           <table border="">
+           <table>
              <tr>
                <th style={{width: '100px'}}>Configuration</th>
                <th style={{width: '130px'}}>Configuration Items</th>
@@ -126,7 +126,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
              </tr>
 
              <tr>
-               <td rowspan="2"><b>Kafka Nodes</b></td>
+               <td rowSpan={2}><b>Kafka Nodes</b></td>
                <td><b>Broker Node Count</b></td>
                <td>To ensure high availability of the broker, each broker will be scheduled on different nodes in the cluster.</td>
              </tr>
@@ -137,7 +137,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
              </tr>
 
              <tr>
-               <td rowspan="2"><b>Access Method</b></td>
+               <td rowSpan={2}><b>Access Method</b></td>
                <td><b>Authentication Method</b></td>
                <td>To ensure secure data transmission, it is recommended to enable encrypted authentication. For example: listening method as TLS, authentication method as SCRAM - SHA - 512.</td>
              </tr>
@@ -148,7 +148,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
              </tr>
 
              <tr>
-               <td rowspan="2"><b>Scheduling Configuration</b></td>
+               <td rowSpan={2}><b>Scheduling Configuration</b></td>
                <td><b>Node Label</b></td>
                <td>Filter available nodes in the current cluster by labels. Pods will be scheduled on available nodes. <br /><b>Note</b>: After the instance is created, this configuration is no longer allowed to be modified.</td>
              </tr>
@@ -297,7 +297,7 @@ The meanings of the output table fields are as follows:
 
     4. Click on **Expand Instance Parameters** and set the following parameter values to **1**:
 
-           <table border="">
+           <table>
              <tr>
                <th style={{width: '150px'}}>Parameter</th>
                <th>Configuration Value</th>
