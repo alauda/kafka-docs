@@ -1,0 +1,63 @@
+---
+weight: 16
+i18n:
+  title:
+    en: Upgrade
+---
+
+# Upgrade
+
+:::note
+
+This document provides the upgrade path principles and supported version compatibility for Alauda Streaming Service for Kafka.
+:::
+
+
+## Upgrade Paths
+
+### Compatibility Matrix
+
+The table below lists supported versions of the Alauda Streaming Service for Kafka and its key components:
+
+| Alauda Kafka Version |  Kafka Versions                | Kubernetes Versions |
+|:--------------------:|:------------------------------:|:-------------------:|
+| v4.1.x               | 3.8.1, 2.8.2 (with plugin)     | 1.25+               |
+| v4.0.x               | 3.8.1, 2.8.2 (with plugin)     | 1.25+               |
+
+:::tip Optional Deployment
+For versions that support Kafka 2 (marked as *with plugin* in the table), you can manage Kafka 2.x instances by installing the Alauda build of the Kafka 2 plugin.
+:::
+
+## Prerequisites
+
+Before initiating an upgrade, please ensure the following:
+
+1. **Version Compatibility**: Your current version falls within a supported upgrade path.
+2. **Component Health**: Kafka instances are in a `Ready` state.
+3. **Resource Availability**: The cluster has sufficient resources to support the upgrade process.
+
+## Upgrade Path Guidelines
+
+### Consecutive Upgrade (Recommended)
+- **Description**: Upgrade step-by-step through consecutive minor versions.
+- **Example**: `4.1.x → 4.2.x`
+
+### Patch-Level Upgrade
+- **Description**: Patch upgrades within the same minor version are fully compatible.
+- **Example**: `4.1.0 → 4.1.x`
+
+### Kafka Version Alignment
+- **Description**: Ensure Kafka version upgrades follow the operator's compatibility matrix.
+- **Example**: Alauda Streaming Service for Kafka `4.1.0` → Kafka `3.8.1` or `2.8.2 (with plugin)`
+
+## Upgrade Process Reference
+- 📝 **[Release Notes](./release_notes.mdx)**: Version-specific changes, new features, and deprecations
+
+
+
+## Upgrade Alauda Streaming Service for Kafka
+
+Alauda Streaming Service for Kafka will execute upgrades based on the configured upgrade strategy:
+
+* **Automatic** : Auto-upgrades are triggered immediately upon detecting new component versions.
+* **Manual** : Requires manual approval before initiating the upgrade process.
