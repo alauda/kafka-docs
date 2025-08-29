@@ -12,10 +12,7 @@ i18n:
 This document provides the upgrade path principles and supported version compatibility for Alauda Streaming Service for Kafka.
 :::
 
-
-## Upgrade Paths
-
-### Compatibility Matrix
+## Compatibility Matrix
 
 The table below lists supported versions of the Alauda Streaming Service for Kafka and its key components:
 
@@ -36,6 +33,8 @@ Before initiating an upgrade, please ensure the following:
 2. **Component Health**: Kafka instances are in a `Ready` state.
 3. **Resource Availability**: The cluster has sufficient resources to support the upgrade process.
 
+For version-specific changes, new features, and deprecations, see the 📝 **[Release Notes](./release_notes.mdx)**.
+
 ## Upgrade Path Guidelines
 
 ### Consecutive Upgrade (Recommended)
@@ -43,19 +42,14 @@ Before initiating an upgrade, please ensure the following:
 - **Example**: `4.1.x → 4.2.x`
 
 ### Patch-Level Upgrade
-- **Description**: Patch upgrades within the same minor version are fully compatible.
+- **Description**: Upgrades between any patch versions within the same minor version are fully compatible and can be performed directly.
 - **Example**: `4.1.0 → 4.1.x`
 
 ### Kafka Version Alignment
 - **Description**: Ensure Kafka version upgrades follow the operator's compatibility matrix.
-- **Example**: Alauda Streaming Service for Kafka `4.1.0` → Kafka `3.8.1` or `2.8.2 (with plugin)`
+- **Example**: Alauda Streaming Service for Kafka `4.1.0` supports Kafka `3.8.1` or Kafka `2.8.2` (with plugin).
 
-## Upgrade Process Reference
-- 📝 **[Release Notes](./release_notes.mdx)**: Version-specific changes, new features, and deprecations
-
-
-
-## Upgrade Alauda Streaming Service for Kafka
+## Upgrade strategy
 
 Alauda Streaming Service for Kafka will execute upgrades based on the configured upgrade strategy:
 

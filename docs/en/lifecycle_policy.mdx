@@ -10,17 +10,15 @@ Below is the lifecycle schedule for released versions of the Alauda Streaming Se
 
 | Alauda Streaming Service for Kafka Version | Release Date | End of Support                                        |
 |:------------------------------------------:|:------------:|:-----------------------------------------------------:|
-| v4.1.x                                     | 2025-08-18   | Supported for 1 month post-release of the next version|
+| v4.1.x                                     | 2025-08-18   | Supported until 1 month post-release of the next version|
 
 
 ## Release Policy
 
-A new minor version of the Alauda Streaming Service for Kafka is released approximately every few months.
-
 The Alauda Streaming Service for Kafka follows a **rolling support model**:
 
-- Each version remains supported **until the next version is officially released**.
-- There is no fixed end date for support; the duration depends on the release cadence.
+- The life cycles of different major versions are independent of each other, and there may be multiple major versions in maintenance simultaneously.
+- Each minor version remains supported **until the next minor version is officially released plus 1 month**. This is done by releasing patches that apply to each supported minor version.
 
 
 ## Maintenance Policy
@@ -29,7 +27,7 @@ Alauda provides maintenance support for the Alauda Streaming Service for Kafka b
 
 During the support period of each version, Alauda provides the following services:
 
-- **Security Updates**: Regular patches and updates in line with Alauda’s security standards.
+- **Security Updates**: Regular patches and updates in line with Alauda security standards.
 - **Bug Fixes**: Timely fixes for critical and major issues, aligned with upstream Kafka community fixes.
 - **Upgrade Assistance**: Guidance and support for smooth upgrades between the Alauda Streaming Service for Kafka versions.
 - **Regular Maintenance**: Periodic updates to ensure the operator remains stable and compatible with the Kubernetes ecosystem.
