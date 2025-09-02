@@ -24,34 +24,3 @@ Supports data transfer configuration through the Data Services view, using Mirro
 Supports the creation of KRaft mode instances (3.x versions only). Kraft mode will gradually replace ZooKeeper mode.
 A migration plan from ZooKeeper mode to Kraft mode is available.([migrate to kraft](../how_to/50-migrate-to-kraft.mdx))
 
-
-## v4.0.0
-
-### New and Optimized Features
-
-#### Component-Platform Decoupling
-
-Alauda Streaming Services for Kafka's lifecycle has been decoupled from platform's, which means when customer needs a certain feature or a bug fix, Kafka team can release immediately instead of waiting for the platform release together.
-
-#### Real-Time Logs on Component Details Page
-
-The logs on Kafka details page have been replaced with real-time logs that update instantly, facilitating troubleshooting and issue analysis.
-
-#### External Access via LoadBalancer for Kafka
-
-LoadBalancer access is now supported for Kafka. When creating an instance, users can choose to expose services externally through a LoadBalancer-type Service.
-
-Compared to NodePort, LoadBalancer provides better high availability, performance, and supports standard port exposure. It is recommended to use the LoadBalancer method in production environments.
-
-`Limitations`
-
-When using LoadBalancer, ensure that the cluster has available external address pools. We recommend using MetalLB to create external address pools for the cluster.
-
-### Fixed Issues
-
-{/* release-notes-for-bugs?template=mw-kafka-v4.0-fixed&project=Middleware */}
-
-### Known Issues
-
-{/* release-notes-for-bugs?template=mw-kafka-v4.0-known&project=Middleware */}
-
