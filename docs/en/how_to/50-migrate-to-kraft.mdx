@@ -6,6 +6,12 @@ weight: 50
 
 Starting from Kafka 4.0, ZooKeeper mode will no longer be supported. The operator will also remove support for ZooKeeper mode in future versions. It is recommended to migrate your Kafka instances to KRaft mode as soon as possible.
 
+:::warning Important Version Note
+- **v4.2.x operator only supports KRaft mode**: ZooKeeper mode has been completely removed in v4.2.x.
+- **Migration must be completed before upgrading to v4.2.x**: If you plan to upgrade to Alauda Streaming Service for Kafka v4.2.x, you must migrate all your instances to KRaft mode using the v4.1.x operator first.
+- **v4.2.x cannot perform migration**: The v4.2.x operator does not support ZooKeeper mode and cannot handle migration from ZooKeeper to KRaft. You must complete migration while still on v4.1.x.
+:::
+
  <Directive type="warning" title="Migration Considerations">
  - **Service Interruption**: The migration process may cause temporary service interruptions.
  - **Connection Changes**: After migration, pod names and service (svc) names will change, which may cause connection addresses to shift. It is critical to update the access addresses of your instances promptly post-migration.If you connect to the Kafka instance using the bootstrap or external-bootstrap services, the access address will remain unchanged and no updates are needed.
@@ -17,16 +23,25 @@ Starting from Kafka 4.0, ZooKeeper mode will no longer be supported. The operato
 - Kafka version must be **3.8** or higher
 - Notify consumers/producers about potential temporary disruptions
 - Ensure the Kafka cluster is healthy and fully operational
+- Verify the current mode of your Kafka instances:
+  ```bash
+  kubectl get rdskafka -A -o custom-columns="NAME:.metadata.name,NAMESPACE:.metadata.namespace,MODE:.spec.mode,PHASE:.status.phase"
+  ```
+  This will help you identify which instances are still in ZooKeeper mode and need migration.
 
 ## Migration Steps
 
 <Tabs>
   <Tab label="CLI">
-1. Patch the Kafka instance to switch to KRaft mode:
+1. First, check the current mode of your Kafka instances:
+    ```bash
+    kubectl get rdskafka -A -o custom-columns="NAME:.metadata.name,NAMESPACE:.metadata.namespace,MODE:.spec.mode,PHASE:.status.phase"
+    ```
+2. Patch the Kafka instance to switch to KRaft mode:
     ```bash
     kubectl patch rdsKafka <name> -n <namespace> --type=merge -p '{"spec":{"mode":"KRaft"}}'
     ```
-2. Monitor the migration status:
+3. Monitor the migration status:
     ```bash
     kubectl get rdsKafka <name> -n <namespace> -o jsonpath='{.status.phase}'
     ```

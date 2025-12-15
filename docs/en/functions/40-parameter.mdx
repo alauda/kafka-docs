@@ -27,11 +27,7 @@ When creating a Kafka instance, the system parameter template is used by default
      `security.`
      `servers,node.id`
      `ssl.`
-     `super.user`
-     `zookeeper.clientCnxnSocket`
-     `zookeeper.connect`
-     `zookeeper.set.acl`
-     `zookeeper.ssl`).
+     `super.user`).
 </Directive>
 
 ## Procedure
@@ -111,7 +107,5 @@ When creating a Kafka instance, the system parameter template is used by default
 | transaction.state.log.segment.bytes | int | The transaction topic segment bytes should be kept relatively small in order to facilitate faster log compaction and cache loads | 104857600 | \[1,...\] |
 | transactional.id.expiration.ms | int | The time in ms that the transaction coordinator will wait without receiving any transaction status updates for the current transaction before expiring its transactional id. This setting also influences producer id expiration - producer ids are expired once this time has elapsed after the last write with the given producer id. Note that producer ids may expire sooner if the last write from the producer id is deleted due to the topic's retention settings. | 604800000 | \[1,...\] |
 | unclean.leader.election.enable | boolean | Indicates whether to enable replicas not in the ISR set to be elected as leader as a last resort, even though doing so may result in data loss | false |     |
-| zookeeper.max.in.flight.requests | int | The maximum number of unacknowledged requests the client will send to Zookeeper before blocking. | 10  | \[1,...\] |
-| zookeeper.session.timeout.ms | int | Zookeeper session timeout | 18000 |     |
 
 For more parameter support, go to the [Kafka website](https://kafka.apache.org/documentation/#configuration).

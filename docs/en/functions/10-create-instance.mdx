@@ -47,7 +47,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
             requests:
               cpu: 200m
               memory: 128Mi
-      version: 3.8
+      version: 4.1
       replicas: 3
       config:
         auto.create.topics.enable: "false"
@@ -228,7 +228,7 @@ The meanings of the output table fields are as follows:
             requests:
               cpu: 200m
               memory: 128Mi
-      version: 3.8
+      version: 4.1
       replicas: 1
       config:
         auto.create.topics.enable: "false"
@@ -269,7 +269,10 @@ The meanings of the output table fields are as follows:
           external:
             type: nodeport
             tls: false
-      zookeeper:
+      mode: KRaft
+      controller:
+        roles:
+          - controller
         # Currently the same as Kafka broker
         replicas: 1
         resources:
