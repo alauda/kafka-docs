@@ -170,8 +170,8 @@ After creating the instance, you can check the status of the instance using the 
 ```bash
 $ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
 NAME         VERSION   STATUS   MESSAGE                                   CreationTimestamp
-my-cluster   3.8       Active   <none>                                    2025-03-06T08:46:57Z
-test38       3.8       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
+my-cluster   4.1       Active   <none>                                    2025-03-06T08:46:57Z
+test41       4.1       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
 ```
 
 The meanings of the output table fields are as follows:
@@ -179,7 +179,7 @@ The meanings of the output table fields are as follows:
 | Field                | Description                                                                                                                                                                                                   |
 | :---------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | NAME              | Instance Name                                                                                                                                                                                                 |
-| VERSION           | Currently only supports these 4 versions: `2.5.0`, `2.7.0`, `2.8.2`, `3.8`                                                                                                                                                         |
+| VERSION           | Currently only supports version: `4.1`                                                                                                                                                         |
 | STATUS            | The current status of the instance, which may have the following statuses: <ul><li>`Creating`: The instance is being created</li><li>`Updating`: The instance is being updated</li><li>`Failed`: The instance has encountered an unrecoverable error</li><li>`Paused`: The instance has been manually paused</li><li>`Restarting`: The instance is restarting</li><li>`Active`: The instance is ready for use</li></ul> |
 | MESSAGE           | The reason for the instance's current status                                                                                                                                                                                          |
 | CreationTimestamp | The timestamp when the instance was created                                                                                                                                                                                              |
@@ -332,7 +332,7 @@ The meanings of the output table fields are as follows:
 
     5. Complete other configurations.
 
-    6. Switch to the YAML editing page and change the values of `spec.replicas` and `spec.zookeeper.replicas` to 1
+    6. Switch to the YAML editing page and change the values of `spec.replicas` and `spec.controller.replicas` to 1
 
     7. Click on **Create**.
 
