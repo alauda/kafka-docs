@@ -6,11 +6,11 @@ weight: 50
 
 Starting from Kafka 4.0, ZooKeeper mode will no longer be supported. The operator will also remove support for ZooKeeper mode in future versions. It is recommended to migrate your Kafka instances to KRaft mode as soon as possible.
 
-:::warning Important Version Note
+<Directive type="warning" title="Important Version Note">
 - **v4.2.x operator only supports KRaft mode**: ZooKeeper mode has been completely removed in v4.2.x.
 - **Migration must be completed before upgrading to v4.2.x**: If you plan to upgrade to Alauda Streaming Service for Kafka v4.2.x, you must migrate all your instances to KRaft mode using the v4.1.x operator first.
 - **v4.2.x cannot perform migration**: The v4.2.x operator does not support ZooKeeper mode and cannot handle migration from ZooKeeper to KRaft. You must complete migration while still on v4.1.x.
-:::
+</Directive>
 
  <Directive type="warning" title="Migration Considerations">
  - **Service Interruption**: The migration process may cause temporary service interruptions.
