@@ -8,6 +8,23 @@ i18n:
 
 # Release Notes
 
+## v4.2.0
+
+### New and Optimized Features
+
+#### Community Kafka 4.1.1 Support
+- Added support for the community Kafka version 4.1.1.
+- All new instances created with v4.2.x will use Kafka 4.1.1 by default.
+
+#### ZooKeeper Mode Removal
+- **ZooKeeper mode has been completely removed**: v4.2.x only supports KRaft mode.
+- This aligns with the upstream Kafka community direction where ZooKeeper mode is deprecated.
+- **Important**: All existing instances must be migrated to KRaft mode before upgrading to v4.2.x. Use the v4.1.x operator for migration.
+
+#### Kubernetes Security Hardening
+- Enhanced security configurations for Kubernetes deployments.
+- Added security context constraints for better pod isolation.
+
 ## v4.1.0
 
 ### New and Optimized Features
