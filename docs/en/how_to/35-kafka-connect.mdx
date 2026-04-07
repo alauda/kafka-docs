@@ -1,0 +1,326 @@
+---
+weight: 35
+---
+
+# Using Kafka Connect
+
+Kafka Connect is a component of the Strimzi operator used to run Kafka source and sink connectors on Kubernetes. You can use it to move data between Kafka and external systems such as databases, object storage, search engines, and other message systems.
+
+This document describes how to create a `KafkaConnect` cluster, add connector plugins, create `KafkaConnector` resources, and manage connector lifecycle.
+
+## Prerequisites
+
+Before creating Kafka Connect, ensure that the following conditions are met:
+
+1. The Strimzi operator is installed and watching the namespace where Kafka Connect will be created.
+2. A Kafka cluster is running and reachable from the Kafka Connect pods.
+3. The connector plugin required by your workload is available in the Kafka Connect image or configured through the Kafka Connect build mechanism.
+4. The target Kafka topics and external systems are reachable.
+5. Kafka users, ACLs, and TLS certificates are prepared if the target Kafka cluster enables authentication or TLS.
+
+## Create a Kafka Connect Cluster
+
+The following example creates a Kafka Connect cluster named `my-connect-cluster` and connects it to a Kafka cluster named `my-cluster` through the internal plain bootstrap service.
+
+<Directive type="note" title="Note">
+Replace the namespace, bootstrap address, connector image, and resource settings according to your environment.
+</Directive>
+
+```bash
+cat << EOF | kubectl -n default apply -f -
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    key.converter: org.apache.kafka.connect.json.JsonConverter
+    value.converter: org.apache.kafka.connect.json.JsonConverter
+    key.converter.schemas.enable: false
+    value.converter.schemas.enable: false
+  resources:
+    requests:
+      cpu: 500m
+      memory: 1Gi
+    limits:
+      cpu: 1
+      memory: 2Gi
+EOF
+```
+
+The annotation `strimzi.io/use-connector-resources: "true"` enables connector management through `KafkaConnector` custom resources. With this mode enabled, connector instances are reconciled by the operator instead of being managed only through the Kafka Connect REST API.
+
+## Create a Kafka Connect Cluster with TLS and SCRAM
+
+If the Kafka cluster requires TLS and SCRAM-SHA-512 authentication, configure `tls` and `authentication` in the `KafkaConnect` resource.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9093
+  tls:
+    trustedCertificates:
+      - secretName: my-cluster-cluster-ca-cert
+        certificate: ca.crt
+  authentication:
+    type: scram-sha-512
+    username: my-connect-user
+    passwordSecret:
+      secretName: my-connect-user
+      password: password
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+```
+
+## Add Connector Plugins
+
+Kafka Connect workers need connector plugins before connector instances can run. Strimzi supports several plugin delivery methods. Use the method that matches your image and registry policy.
+
+| Method | Usage |
+| :--- | :--- |
+| Custom image | Build a Kafka Connect image that already contains connector plugins, then set `spec.image`. |
+| Kafka Connect build | Let Strimzi build a Kafka Connect image from plugin artifacts and push it to a configured registry. |
+| Mounted plugins | Mount plugin artifacts from volumes when this is supported by your environment. |
+
+The following example shows the Strimzi build pattern using a Maven artifact. Replace the registry, artifact URL, and checksum with values approved in your environment.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  build:
+    output:
+      type: docker
+      image: registry.example.com/kafka/my-connect-cluster:latest
+    plugins:
+      - name: kafka-connect-file
+        artifacts:
+          - type: maven
+            group: org.apache.kafka
+            artifact: connect-file
+            version: 4.1.1
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+```
+
+## Check Available Connector Plugins
+
+Before creating a connector, verify that the connector plugin is available in the Kafka Connect cluster.
+
+```bash
+kubectl -n default port-forward service/my-connect-cluster-connect-api 8083:8083
+curl http://localhost:8083/connector-plugins
+```
+
+The output should include the connector class that you plan to use, for example `org.apache.kafka.connect.file.FileStreamSourceConnector` or a connector class provided by your plugin.
+
+## Create a Source Connector
+
+After the Kafka Connect cluster is ready and the required plugin is available, create a `KafkaConnector` resource.
+
+The `strimzi.io/cluster` label must match the name of the `KafkaConnect` resource.
+
+<Directive type="note" title="Example Only">
+The file connector is useful for validating the Kafka Connect workflow. For production workloads, use the connector plugin required by your data source, such as a change data capture connector or a relational database connector.
+</Directive>
+
+```bash
+cat << EOF | kubectl -n default apply -f -
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: my-file-source-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: org.apache.kafka.connect.file.FileStreamSourceConnector
+  tasksMax: 1
+  config:
+    file: /tmp/test.txt
+    topic: my-connect-topic
+EOF
+```
+
+## Create a Sink Connector
+
+The following example shows the structure of a sink connector. Replace the connector class and configuration with the plugin used in your environment.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: my-sink-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: com.example.connect.MySinkConnector
+  tasksMax: 2
+  config:
+    topics: my-source-topic
+    connection.url: jdbc:postgresql://postgresql.default.svc:5432/app
+    connection.user: ${file:/opt/kafka/external-configuration/connector-secrets/db.properties:username}
+    connection.password: ${file:/opt/kafka/external-configuration/connector-secrets/db.properties:password}
+```
+
+If the connector needs secrets, mount them into the `KafkaConnect` cluster through external configuration and reference them from connector configuration. Avoid storing passwords directly in the `KafkaConnector` resource.
+
+## Verify Kafka Connect and Connectors
+
+Check the Kafka Connect cluster status:
+
+```bash
+kubectl -n default get kafkaconnect my-connect-cluster
+kubectl -n default describe kafkaconnect my-connect-cluster
+```
+
+Check connector status:
+
+```bash
+kubectl -n default get kafkaconnector
+kubectl -n default describe kafkaconnector my-file-source-connector
+kubectl -n default get kafkaconnector my-file-source-connector -o yaml
+```
+
+Check worker pods:
+
+```bash
+kubectl -n default get pods -l strimzi.io/name=my-connect-cluster-connect
+```
+
+Check the Kafka Connect worker logs if the connector is not ready:
+
+```bash
+kubectl -n default logs -l strimzi.io/name=my-connect-cluster-connect
+```
+
+## Update a Connector
+
+Update a connector by editing the `KafkaConnector` resource:
+
+```bash
+kubectl -n default edit kafkaconnector my-file-source-connector
+```
+
+The operator reconciles the change and updates the connector through the Kafka Connect REST API.
+
+Common updates include:
+
+- Changing `tasksMax`
+- Updating connector-specific configuration
+- Adding topic patterns
+- Adjusting connector retry or error-handling parameters
+
+## Pause, Resume, and Stop a Connector
+
+Use `spec.state` to control whether a connector is running, paused, or stopped.
+
+Pause a connector by setting `spec.state` to `paused`.
+
+```bash
+kubectl -n default patch kafkaconnector my-file-source-connector --type merge -p '{"spec":{"state":"paused"}}'
+```
+
+Resume the connector by setting `spec.state` to `running`.
+
+```bash
+kubectl -n default patch kafkaconnector my-file-source-connector --type merge -p '{"spec":{"state":"running"}}'
+```
+
+Stop the connector by setting `spec.state` to `stopped`.
+
+```bash
+kubectl -n default patch kafkaconnector my-file-source-connector --type merge -p '{"spec":{"state":"stopped"}}'
+```
+
+## Delete a Connector
+
+Delete the `KafkaConnector` resource to remove the connector instance from Kafka Connect:
+
+```bash
+kubectl -n default delete kafkaconnector my-file-source-connector
+```
+
+Deleting a connector does not automatically delete Kafka topics, committed offsets, or data in the external system.
+
+## Key Configuration Parameters
+
+| Parameter | Description |
+| :--- | :--- |
+| `spec.replicas` | Number of Kafka Connect worker pods. |
+| `spec.bootstrapServers` | Kafka bootstrap server used by Kafka Connect. |
+| `spec.tls` | TLS configuration for encrypted Kafka connections. |
+| `spec.authentication` | Authentication configuration, such as SCRAM-SHA-512 or TLS authentication. |
+| `spec.config.group.id` | Kafka Connect worker group ID. Use a unique value per Kafka Connect cluster. |
+| `spec.config.config.storage.topic` | Topic used to store connector configurations. |
+| `spec.config.offset.storage.topic` | Topic used to store connector offsets. |
+| `spec.config.status.storage.topic` | Topic used to store connector and task status. |
+| `spec.build` | Optional build configuration for adding connector plugins. |
+| `metadata.labels.strimzi.io/cluster` | Name of the `KafkaConnect` cluster that runs the connector. |
+| `spec.class` | Connector implementation class. The class must be available in the Kafka Connect image. |
+| `spec.tasksMax` | Maximum number of tasks for the connector. Actual parallelism depends on connector implementation and source or sink system capabilities. |
+| `spec.config` | Connector-specific configuration. |
+| `spec.state` | Desired connector state. Supported values are `running`, `paused`, and `stopped`. |
+| `spec.autoRestart` | Optional automatic restart policy for failed connectors or tasks. |
+
+## Best Practices
+
+1. Use `KafkaConnector` resources for connector lifecycle management instead of manually creating connectors through the REST API.
+2. Use at least `2` Kafka Connect replicas for production workloads.
+3. Configure internal topic replication factors based on the Kafka cluster size.
+4. Keep connector plugin versions compatible with the Kafka Connect runtime version.
+5. Keep one `KafkaConnector` resource per connector instance.
+6. Avoid storing secrets directly in `spec.config`.
+7. Store passwords and certificates in Kubernetes Secrets instead of plain text connector configuration.
+8. Set `tasksMax` according to connector capabilities and workload size.
+9. Monitor connector task status, restart count, lag, and error logs after deployment.
+
+## Troubleshooting
+
+| Symptom | Check |
+| :--- | :--- |
+| `KafkaConnect` is not ready | Check `kubectl describe kafkaconnect`, worker pod logs, and Kafka bootstrap connectivity. |
+| Connector class not found | Verify that the plugin is installed and listed by `/connector-plugins`. |
+| Connector is not assigned to a Connect cluster | Verify the `strimzi.io/cluster` label. |
+| Connector stays in `NotReady` | Check whether the connector plugin class exists in `curl /connector-plugins`. |
+| Connector tasks fail or fail repeatedly | Check connector-specific configuration, worker logs, external system connectivity, and task status. |
+| Connector does not process new data | Check source offsets, topic subscription, task status, and external system permissions. |
+| Authentication fails | Verify `spec.authentication`, Kafka ACLs, connector credentials, mounted secrets, and TLS configuration. |
+| Build fails | Verify registry access, plugin artifact URLs, and image pull permissions. |
