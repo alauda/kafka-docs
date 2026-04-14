@@ -16,7 +16,7 @@ The examples in this document use `default` as the namespace. In production envi
 
 Before creating Kafka Connect, ensure that the following conditions are met:
 
-1. The Strimzi operator is installed and watching the namespace where Kafka Connect will be created.
+1. The Kafka operator is installed and watching the namespace where Kafka Connect will be created.
 2. A Kafka cluster is running and reachable from the Kafka Connect pods.
 3. The connector plugin required by your workload is available in the Kafka Connect image or configured through the Kafka Connect build mechanism.
 4. The target Kafka topics and external systems are reachable.
@@ -303,10 +303,10 @@ spec:
 ```
 
 <Directive type="note" title="Migration Guidance">
-In newer Strimzi versions, `spec.externalConfiguration` is being phased out in favor of standard pod template fields. Existing `externalConfiguration` setups continue to work, but new deployments should use the following alternatives:
+In newer versions, `spec.externalConfiguration` is being phased out in favor of standard pod template fields. Existing `externalConfiguration` setups continue to work, but new deployments should use the following alternatives:
 
 - For environment variables sourced from a Secret or ConfigMap, use `spec.template.connectContainer.env` with `valueFrom.secretKeyRef` or `valueFrom.configMapKeyRef`.
-- For file-based secrets used with `${file:...}` references, mount the Secret or ConfigMap through `spec.template.pod.volumes` and `spec.template.connectContainer.volumeMounts`. Additional volumes are mounted under `/mnt`, so connector configuration must reference files through that path.
+- For file-based secrets used with `${file:...}` references, mount the Secret or ConfigMap through `spec.template.pod.volumes` and `spec.template.connectContainer.volumeMounts`. Choose a mount path that matches your connector configuration and reference files through that path.
 
 The following example mounts a Secret at `/mnt/connector-secrets` so that connectors can read credentials from a properties file:
 
@@ -675,7 +675,7 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 3. Configure internal topic replication factors based on the Kafka cluster size.
 4. Keep connector plugin versions compatible with the Kafka Connect runtime version.
 5. Keep one `KafkaConnector` resource per connector instance.
-6. Avoid storing secrets directly in `spec.config`. Use `externalConfiguration` or environment variables from Kubernetes Secrets.
+6. Avoid storing secrets directly in `spec.config`. Prefer `spec.template.connectContainer.env` for environment variables and `spec.template.pod.volumes` with `spec.template.connectContainer.volumeMounts` for file-based secrets. Use `externalConfiguration` only when you need compatibility with existing deployments.
 7. Set `tasksMax` according to connector capabilities and workload size.
 8. Enable `autoRestart` on all production connectors to recover from transient failures automatically.
 9. Enable Prometheus metrics and configure Grafana dashboards to monitor connector task status, restart count, lag, and error rates.
