@@ -105,7 +105,7 @@ Kafka Connect workers need connector plugins before connector instances can run.
 | :--- | :--- |
 | Custom image | Build a Kafka Connect image that already contains connector plugins, then set `spec.image`. |
 | Kafka Connect build | Let Strimzi build a Kafka Connect image from plugin artifacts and push it to a configured registry. |
-| Mounted plugins | Mount plugin artifacts from volumes when this is supported by your environment. |
+| Image-mounted plugins | Upstream Strimzi can mount plugin OCI artifacts through `spec.plugins`, but validate this carefully in your product build before using it. |
 
 The following example shows the Strimzi build pattern using a Maven artifact. Replace the registry, artifact URL, and checksum with values approved in your environment.
 
@@ -152,6 +152,82 @@ curl http://localhost:8083/connector-plugins
 
 The output should include the connector class that you plan to use, for example `org.apache.kafka.connect.file.FileStreamSourceConnector` or a connector class provided by your plugin.
 
+Only create a connector after its class appears in `/connector-plugins`. In the current product image, the default plugin list can contain only MirrorMaker 2 connector classes. A connector JAR present in the image classpath does not automatically mean that the connector is available for use through Kafka Connect plugin discovery.
+
+## If the Connector Class Does Not Exist
+
+If the connector class you need is not listed in `/connector-plugins`, do not create the `KafkaConnector` yet. Add the plugin to the Kafka Connect runtime first, then check `/connector-plugins` again.
+
+Use one of the following approaches:
+
+1. Recommended: use `spec.build` to let Strimzi build a new Kafka Connect image with the required plugin and push it to your registry.
+2. Use a prebuilt custom image that already contains the required plugin, then set `spec.image`.
+3. Upstream Strimzi also supports `spec.plugins` with `type: image`, which uses Kubernetes Image Volumes to mount an OCI artifact into `/opt/kafka/plugins`. In the current product test cluster, this path was accepted by the CRD but did not expose the connector class through `/connector-plugins`, so do not use it as the default procedure unless you validate it successfully in your own environment.
+
+The `spec.build` approach is the most predictable because the plugin becomes part of the resulting image and can be promoted across environments.
+
+The following example shows the recommended build pattern using a Maven artifact:
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  build:
+    output:
+      type: docker
+      image: registry.example.com/kafka/my-connect-cluster:latest
+      pushSecret: my-registry-secret
+    plugins:
+      - name: my-jdbc-plugin
+        artifacts:
+          - type: maven
+            repository: https://repo1.maven.org/maven2
+            group: org.apache.kafka
+            artifact: connect-file
+            version: 4.1.1
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+```
+
+If you already have an image built outside the cluster, point Kafka Connect to it directly:
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  image: registry.example.com/kafka/my-connect-cluster:latest
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+```
+
+After changing the image source, wait for the Kafka Connect pod rollout to finish and run `/connector-plugins` again. Only create the `KafkaConnector` after the required class appears in the returned list.
+
 ## Create a Source Connector
 
 After the Kafka Connect cluster is ready and the required plugin is available, create a `KafkaConnector` resource.
@@ -159,7 +235,7 @@ After the Kafka Connect cluster is ready and the required plugin is available, c
 The `strimzi.io/cluster` label must match the name of the `KafkaConnect` resource.
 
 <Directive type="note" title="Example Only">
-The file connector is useful for validating the Kafka Connect workflow. For production workloads, use the connector plugin required by your data source, such as a change data capture connector or a relational database connector.
+The file connector is useful for validating the Kafka Connect workflow, but only after the `org.apache.kafka.connect.file.FileStreamSourceConnector` class is available in `/connector-plugins`, for example by using the Kafka Connect build example above or a custom image. For production workloads, use the connector plugin required by your data source, such as a change data capture connector or a relational database connector.
 </Directive>
 
 ```bash
