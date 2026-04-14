@@ -302,13 +302,39 @@ spec:
             key: password
 ```
 
-<Directive type="note" title="Deprecation Notice">
-The `externalConfiguration` property is deprecated in newer Strimzi versions. Use `spec.template.connectContainer.env` with `valueFrom.secretKeyRef` or `valueFrom.configMapKeyRef` for new deployments. Existing `externalConfiguration` setups continue to work but should be migrated.
+<Directive type="note" title="Migration Guidance">
+In newer Strimzi versions, `spec.externalConfiguration` is being phased out in favor of standard pod template fields. Existing `externalConfiguration` setups continue to work, but new deployments should use the following alternatives:
+
+- For environment variables sourced from a Secret or ConfigMap, use `spec.template.connectContainer.env` with `valueFrom.secretKeyRef` or `valueFrom.configMapKeyRef`.
+- For file-based secrets used with `${file:...}` references, mount the Secret or ConfigMap through `spec.template.pod.volumes` and `spec.template.connectContainer.volumeMounts`. Additional volumes are mounted under `/mnt`, so connector configuration must reference files through that path.
+
+The following example mounts a Secret at `/mnt/connector-secrets` so that connectors can read credentials from a properties file:
+
+```yaml
+spec:
+  config:
+    config.providers: file
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+  template:
+    pod:
+      volumes:
+        - name: connector-secrets
+          secret:
+            secretName: my-connector-secrets
+    connectContainer:
+      volumeMounts:
+        - name: connector-secrets
+          mountPath: /mnt/connector-secrets
+```
+
+Connectors then reference values using `${file:/mnt/connector-secrets/<file>:<key>}`.
 </Directive>
 
 ## Configure Logging
 
 Use `spec.logging` to configure the log levels for Kafka Connect workers. You can use inline logging or reference an external ConfigMap.
+
+Kafka Connect uses log4j2. Both inline and external configuration follow the log4j2 property syntax.
 
 Inline logging:
 
@@ -317,10 +343,14 @@ spec:
   logging:
     type: inline
     loggers:
-      log4j.rootLogger: INFO
-      log4j.logger.org.apache.kafka.connect: DEBUG
-      log4j.logger.org.apache.kafka.connect.runtime: WARN
+      rootLogger.level: INFO
+      logger.connect.name: org.apache.kafka.connect
+      logger.connect.level: DEBUG
+      logger.runtime.name: org.apache.kafka.connect.runtime
+      logger.runtime.level: WARN
 ```
+
+Each custom logger needs a `logger.<key>.name` line that declares the package it targets, plus a `logger.<key>.level` line that sets the level. The `<key>` is an arbitrary identifier used only inside the `loggers` map.
 
 External logging using a ConfigMap:
 
@@ -331,13 +361,13 @@ spec:
     valueFrom:
       configMapKeyRef:
         name: my-connect-logging
-        key: log4j.properties
+        key: log4j2.properties
 ```
 
-Create the ConfigMap before applying the `KafkaConnect` resource:
+Create the ConfigMap before applying the `KafkaConnect` resource. The ConfigMap must contain a full log4j2 configuration:
 
 ```bash
-kubectl -n default create configmap my-connect-logging --from-file=log4j.properties=./log4j.properties
+kubectl -n default create configmap my-connect-logging --from-file=log4j2.properties=./log4j2.properties
 ```
 
 ## Configure Metrics
@@ -517,25 +547,74 @@ kubectl -n default patch kafkaconnector my-file-source-connector --type merge -p
 
 ## Manage Connector Offsets
 
-You can list, alter, and reset connector offsets through the `KafkaConnector` resource. This is useful for replaying data or skipping problematic records.
+You can list, alter, and reset connector offsets through the `KafkaConnector` resource using `spec.listOffsets` and `spec.alterOffsets`. The operator writes the results to a ConfigMap and reconciles the requested changes, so offset management stays declarative and does not require calling the Kafka Connect REST API.
 
-List current offsets by checking the connector status:
+Offset operations are driven by annotations on the `KafkaConnector` resource:
 
-```bash
-kubectl -n default get kafkaconnector my-file-source-connector -o jsonpath='{.status.connectorStatus}'
+- `strimzi.io/connector-offsets=list` triggers a list operation.
+- `strimzi.io/connector-offsets=alter` triggers an alter operation. The connector must be in the `stopped` state first.
+- `strimzi.io/connector-offsets=reset` triggers a reset operation. The connector must also be `stopped`.
+
+### List Offsets
+
+Declare the target ConfigMap in `spec.listOffsets`, then annotate the resource to trigger the list:
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnector
+metadata:
+  name: my-file-source-connector
+  labels:
+    strimzi.io/cluster: my-connect-cluster
+spec:
+  class: org.apache.kafka.connect.file.FileStreamSourceConnector
+  tasksMax: 1
+  listOffsets:
+    toConfigMap:
+      name: my-file-source-connector-offsets
+  config:
+    file: /tmp/test.txt
+    topic: my-connect-topic
 ```
 
-To reset offsets, stop the connector first and then use the Kafka Connect REST API:
-
 ```bash
-kubectl -n default port-forward service/my-connect-cluster-connect-api 8083:8083
-curl -X DELETE http://localhost:8083/connectors/my-file-source-connector/offsets
+kubectl -n default annotate kafkaconnector my-file-source-connector \
+  strimzi.io/connector-offsets=list --overwrite
+kubectl -n default get configmap my-file-source-connector-offsets -o yaml
 ```
 
-After resetting offsets, resume the connector. The connector starts processing from the beginning or from the position defined by its offset reset policy.
+### Alter Offsets
+
+To alter offsets, stop the connector, provide the new offsets in a ConfigMap referenced by `spec.alterOffsets`, and annotate the resource:
+
+```yaml
+spec:
+  state: stopped
+  alterOffsets:
+    fromConfigMap:
+      name: my-file-source-connector-new-offsets
+```
+
+```bash
+kubectl -n default annotate kafkaconnector my-file-source-connector \
+  strimzi.io/connector-offsets=alter --overwrite
+```
+
+### Reset Offsets
+
+To reset offsets, stop the connector and annotate the resource:
+
+```bash
+kubectl -n default patch kafkaconnector my-file-source-connector \
+  --type merge -p '{"spec":{"state":"stopped"}}'
+kubectl -n default annotate kafkaconnector my-file-source-connector \
+  strimzi.io/connector-offsets=reset --overwrite
+```
+
+After the reset or alter operation completes, return the connector to `running`. The connector resumes processing from the new offset position or from the position defined by its offset reset policy.
 
 <Directive type="warning" title="Warning">
-Resetting offsets can cause data to be reprocessed. Only reset offsets when you understand the impact on downstream consumers and the external system.
+Altering or resetting offsets can cause data to be reprocessed or skipped. Only do this when you understand the impact on downstream consumers and the external system.
 </Directive>
 
 ## Delete a Connector
@@ -565,7 +644,7 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 | `spec.config.offset.storage.topic` | Topic used to store connector offsets. |
 | `spec.config.status.storage.topic` | Topic used to store connector and task status. |
 | `spec.build` | Optional build configuration for adding connector plugins. |
-| `spec.externalConfiguration` | Mount Secrets or ConfigMaps into Kafka Connect pods for connector credential access. Deprecated in favor of environment variables. |
+| `spec.externalConfiguration` | Mount Secrets or ConfigMaps into Kafka Connect pods for connector credential access. Being phased out; use `spec.template.pod.volumes` with `spec.template.connectContainer.volumeMounts` for file-based secrets, or `spec.template.connectContainer.env` for environment variables. |
 | `spec.logging` | Logging configuration. Supports inline loggers or an external ConfigMap reference. |
 | `spec.metricsConfig` | Prometheus JMX exporter configuration for metrics collection. |
 | `spec.tracing` | Distributed tracing configuration. Supports OpenTelemetry. |
@@ -586,6 +665,8 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 | `spec.config` | Connector-specific configuration. |
 | `spec.state` | Desired connector state. Supported values are `running`, `paused`, and `stopped`. |
 | `spec.autoRestart` | Automatic restart policy for failed connectors or tasks. Set `enabled: true` and optionally `maxRestarts` to limit consecutive restarts. |
+| `spec.listOffsets` | Target ConfigMap for list-offsets operations. Triggered by the `strimzi.io/connector-offsets=list` annotation. |
+| `spec.alterOffsets` | Source ConfigMap for alter-offsets operations. Triggered by the `strimzi.io/connector-offsets=alter` annotation. The connector must be in the `stopped` state. |
 
 ## Best Practices
 

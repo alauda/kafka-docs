@@ -107,7 +107,7 @@ These settings apply as defaults for all consumers and producers created through
 
 ## Configure Logging
 
-Use `spec.logging` to configure log levels for Kafka Bridge.
+Kafka Bridge uses log4j2. Use `spec.logging` to configure log levels. Both inline and external configuration follow the log4j2 property syntax.
 
 Inline logging:
 
@@ -116,9 +116,16 @@ spec:
   logging:
     type: inline
     loggers:
+      rootLogger.level: INFO
+      logger.bridge.name: io.strimzi.kafka.bridge
       logger.bridge.level: INFO
+      logger.healthy.name: http.openapi.operation.healthy
       logger.healthy.level: WARN
+      logger.ready.name: http.openapi.operation.ready
+      logger.ready.level: WARN
 ```
+
+Each custom logger requires a `logger.<key>.name` line that declares the target package or logger, plus a `logger.<key>.level` line that sets the level. The `<key>` is an arbitrary identifier used only inside the `loggers` map.
 
 External logging using a ConfigMap:
 
@@ -316,7 +323,7 @@ Use the admin API to create a topic through the Kafka Bridge.
 
 ```bash
 curl -X POST http://localhost:8080/admin/topics \
-  -H 'content-type: application/json' \
+  -H 'content-type: application/vnd.kafka.json.v2+json' \
   -d '{
     "topic_name": "my-new-topic",
     "partitions_count": 3,
@@ -324,14 +331,15 @@ curl -X POST http://localhost:8080/admin/topics \
   }'
 ```
 
+Only `topic_name` is required. If `partitions_count` or `replication_factor` is omitted, the Kafka cluster defaults are used.
+
 ### Common Content Types
 
 | Content Type | Usage |
 | :--- | :--- |
 | `application/vnd.kafka.v2+json` | Consumer creation, subscription, and general API requests. |
-| `application/vnd.kafka.json.v2+json` | Producing or consuming JSON records. |
+| `application/vnd.kafka.json.v2+json` | Producing or consuming JSON records, and admin API requests such as topic creation. |
 | `application/vnd.kafka.binary.v2+json` | Producing or consuming Base64 encoded binary records. |
-| `application/json` | Admin API requests such as topic creation. |
 
 ## Expose Kafka Bridge by Service
 
