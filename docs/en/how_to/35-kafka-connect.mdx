@@ -8,6 +8,10 @@ Kafka Connect is a component of the Strimzi operator used to run Kafka source an
 
 This document describes how to create a `KafkaConnect` cluster, add connector plugins, create `KafkaConnector` resources, and manage connector lifecycle.
 
+<Directive type="note" title="Note">
+The examples in this document use `default` as the namespace. In production environments, deploy Kafka Connect in a dedicated namespace. Replace `default` with the namespace used in your environment.
+</Directive>
+
 ## Prerequisites
 
 Before creating Kafka Connect, ensure that the following conditions are met:
@@ -124,68 +128,9 @@ spec:
     output:
       type: docker
       image: registry.example.com/kafka/my-connect-cluster:latest
-    plugins:
-      - name: kafka-connect-file
-        artifacts:
-          - type: maven
-            group: org.apache.kafka
-            artifact: connect-file
-            version: 4.1.1
-  config:
-    group.id: my-connect-cluster
-    config.storage.topic: my-connect-cluster-configs
-    offset.storage.topic: my-connect-cluster-offsets
-    status.storage.topic: my-connect-cluster-status
-    config.storage.replication.factor: 3
-    offset.storage.replication.factor: 3
-    status.storage.replication.factor: 3
-```
-
-## Check Available Connector Plugins
-
-Before creating a connector, verify that the connector plugin is available in the Kafka Connect cluster.
-
-```bash
-kubectl -n default port-forward service/my-connect-cluster-connect-api 8083:8083
-curl http://localhost:8083/connector-plugins
-```
-
-The output should include the connector class that you plan to use, for example `org.apache.kafka.connect.file.FileStreamSourceConnector` or a connector class provided by your plugin.
-
-Only create a connector after its class appears in `/connector-plugins`. In the current product image, the default plugin list can contain only MirrorMaker 2 connector classes. A connector JAR present in the image classpath does not automatically mean that the connector is available for use through Kafka Connect plugin discovery.
-
-## If the Connector Class Does Not Exist
-
-If the connector class you need is not listed in `/connector-plugins`, do not create the `KafkaConnector` yet. Add the plugin to the Kafka Connect runtime first, then check `/connector-plugins` again.
-
-Use one of the following approaches:
-
-1. Recommended: use `spec.build` to let Strimzi build a new Kafka Connect image with the required plugin and push it to your registry.
-2. Use a prebuilt custom image that already contains the required plugin, then set `spec.image`.
-3. Upstream Strimzi also supports `spec.plugins` with `type: image`, which uses Kubernetes Image Volumes to mount an OCI artifact into `/opt/kafka/plugins`. In the current product test cluster, this path was accepted by the CRD but did not expose the connector class through `/connector-plugins`, so do not use it as the default procedure unless you validate it successfully in your own environment.
-
-The `spec.build` approach is the most predictable because the plugin becomes part of the resulting image and can be promoted across environments.
-
-The following example shows the recommended build pattern using a Maven artifact:
-
-```yaml
-apiVersion: kafka.strimzi.io/v1beta2
-kind: KafkaConnect
-metadata:
-  name: my-connect-cluster
-  annotations:
-    strimzi.io/use-connector-resources: "true"
-spec:
-  version: 4.1.1
-  replicas: 2
-  bootstrapServers: my-cluster-kafka-bootstrap:9092
-  build:
-    output:
-      type: docker
-      image: registry.example.com/kafka/my-connect-cluster:latest
       pushSecret: my-registry-secret
     plugins:
-      - name: my-jdbc-plugin
+      - name: kafka-connect-file
         artifacts:
           - type: maven
             repository: https://repo1.maven.org/maven2
@@ -226,6 +171,31 @@ spec:
     status.storage.replication.factor: 3
 ```
 
+## Check Available Connector Plugins
+
+Before creating a connector, verify that the connector plugin is available in the Kafka Connect cluster.
+
+```bash
+kubectl -n default port-forward service/my-connect-cluster-connect-api 8083:8083
+curl http://localhost:8083/connector-plugins
+```
+
+The output should include the connector class that you plan to use, for example `org.apache.kafka.connect.file.FileStreamSourceConnector` or a connector class provided by your plugin.
+
+Only create a connector after its class appears in `/connector-plugins`. In the current product image, the default plugin list can contain only MirrorMaker 2 connector classes. A connector JAR present in the image classpath does not automatically mean that the connector is available for use through Kafka Connect plugin discovery.
+
+## If the Connector Class Does Not Exist
+
+If the connector class you need is not listed in `/connector-plugins`, do not create the `KafkaConnector` yet. Add the plugin to the Kafka Connect runtime first, then check `/connector-plugins` again.
+
+Use one of the following approaches:
+
+1. Recommended: use `spec.build` to let Strimzi build a new Kafka Connect image with the required plugin and push it to your registry. See the build example in [Add Connector Plugins](#add-connector-plugins).
+2. Use a prebuilt custom image that already contains the required plugin, then set `spec.image`.
+3. Upstream Strimzi also supports `spec.plugins` with `type: image`, which uses Kubernetes Image Volumes to mount an OCI artifact into `/opt/kafka/plugins`. In the current product test cluster, this path was accepted by the CRD but did not expose the connector class through `/connector-plugins`, so do not use it as the default procedure unless you validate it successfully in your own environment.
+
+The `spec.build` approach is the most predictable because the plugin becomes part of the resulting image and can be promoted across environments.
+
 After changing the image source, wait for the Kafka Connect pod rollout to finish and run `/connector-plugins` again. Only create the `KafkaConnector` after the required class appears in the returned list.
 
 ## Create a Source Connector
@@ -249,11 +219,16 @@ metadata:
 spec:
   class: org.apache.kafka.connect.file.FileStreamSourceConnector
   tasksMax: 1
+  autoRestart:
+    enabled: true
+    maxRestarts: 10
   config:
     file: /tmp/test.txt
     topic: my-connect-topic
 EOF
 ```
+
+The `autoRestart` field enables automatic restart for failed connectors and tasks. Set `maxRestarts` to limit the number of consecutive automatic restarts. If the connector exceeds the maximum restart count, it remains in a failed state until the issue is resolved and the connector is manually restarted.
 
 ## Create a Sink Connector
 
@@ -269,6 +244,8 @@ metadata:
 spec:
   class: com.example.connect.MySinkConnector
   tasksMax: 2
+  autoRestart:
+    enabled: true
   config:
     topics: my-source-topic
     connection.url: jdbc:postgresql://postgresql.default.svc:5432/app
@@ -277,6 +254,198 @@ spec:
 ```
 
 If the connector needs secrets, mount them into the `KafkaConnect` cluster through external configuration and reference them from connector configuration. Avoid storing passwords directly in the `KafkaConnector` resource.
+
+## Configure External Secrets for Connectors
+
+To use `${file:...}` references in connector configuration, mount secrets into the Kafka Connect pods using `spec.externalConfiguration`. The following example mounts a Kubernetes Secret as a volume so that connectors can read credentials from a properties file.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaConnect
+metadata:
+  name: my-connect-cluster
+  annotations:
+    strimzi.io/use-connector-resources: "true"
+spec:
+  version: 4.1.1
+  replicas: 2
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  config:
+    group.id: my-connect-cluster
+    config.storage.topic: my-connect-cluster-configs
+    offset.storage.topic: my-connect-cluster-offsets
+    status.storage.topic: my-connect-cluster-status
+    config.storage.replication.factor: 3
+    offset.storage.replication.factor: 3
+    status.storage.replication.factor: 3
+    config.providers: file
+    config.providers.file.class: org.apache.kafka.common.config.provider.FileConfigProvider
+  externalConfiguration:
+    volumes:
+      - name: connector-secrets
+        secret:
+          secretName: my-connector-secrets
+```
+
+Connectors reference mounted secrets using the `${file:/opt/kafka/external-configuration/<volume-name>/<file>:<key>}` syntax.
+
+You can also pass secrets as environment variables:
+
+```yaml
+spec:
+  externalConfiguration:
+    env:
+      - name: DB_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            name: my-connector-secrets
+            key: password
+```
+
+<Directive type="note" title="Deprecation Notice">
+The `externalConfiguration` property is deprecated in newer Strimzi versions. Use `spec.template.connectContainer.env` with `valueFrom.secretKeyRef` or `valueFrom.configMapKeyRef` for new deployments. Existing `externalConfiguration` setups continue to work but should be migrated.
+</Directive>
+
+## Configure Logging
+
+Use `spec.logging` to configure the log levels for Kafka Connect workers. You can use inline logging or reference an external ConfigMap.
+
+Inline logging:
+
+```yaml
+spec:
+  logging:
+    type: inline
+    loggers:
+      log4j.rootLogger: INFO
+      log4j.logger.org.apache.kafka.connect: DEBUG
+      log4j.logger.org.apache.kafka.connect.runtime: WARN
+```
+
+External logging using a ConfigMap:
+
+```yaml
+spec:
+  logging:
+    type: external
+    valueFrom:
+      configMapKeyRef:
+        name: my-connect-logging
+        key: log4j.properties
+```
+
+Create the ConfigMap before applying the `KafkaConnect` resource:
+
+```bash
+kubectl -n default create configmap my-connect-logging --from-file=log4j.properties=./log4j.properties
+```
+
+## Configure Metrics
+
+Enable Prometheus metrics collection using `spec.metricsConfig`. Metrics are exported through a JMX Prometheus exporter sidecar.
+
+```yaml
+spec:
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: my-connect-metrics
+        key: metrics-config.yml
+```
+
+Create the metrics ConfigMap with JMX exporter rules:
+
+```bash
+kubectl -n default create configmap my-connect-metrics --from-file=metrics-config.yml=./metrics-config.yml
+```
+
+Example `metrics-config.yml`:
+
+```yaml
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+rules:
+  - pattern: "kafka.connect<type=connect-worker-metrics>([^:]+):"
+    name: "kafka_connect_worker_$1"
+  - pattern: "kafka.connect<type=connect-metrics, client-id=(.+)><>([^:]+)"
+    name: "kafka_connect_$2"
+    labels:
+      client_id: "$1"
+```
+
+After metrics are enabled, configure a Prometheus `ServiceMonitor` or `PodMonitor` to scrape the metrics endpoint. Use Grafana dashboards to visualize Kafka Connect worker and connector metrics.
+
+## Configure Distributed Tracing
+
+Enable OpenTelemetry distributed tracing to track messages through Kafka Connect pipelines.
+
+```yaml
+spec:
+  tracing:
+    type: opentelemetry
+```
+
+Set the OpenTelemetry endpoint through environment variables in the Kafka Connect template:
+
+```yaml
+spec:
+  tracing:
+    type: opentelemetry
+  template:
+    connectContainer:
+      env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://otel-collector.observability.svc:4317
+        - name: OTEL_SERVICE_NAME
+          value: my-connect-cluster
+```
+
+Only messages produced and consumed by Kafka Connect itself are traced. Messages already in Kafka topics before tracing is enabled are not retroactively traced.
+
+## Configure Rack Awareness
+
+Configure rack awareness so that Kafka Connect workers consume from the closest Kafka broker replicas. This reduces cross-zone network traffic in multi-zone deployments.
+
+```yaml
+spec:
+  rack:
+    topologyKey: topology.kubernetes.io/zone
+```
+
+The `topologyKey` value must match a node label present on all Kubernetes nodes where Kafka Connect pods can be scheduled.
+
+## Configure JVM Options
+
+Tune JVM memory allocation and garbage collection for Kafka Connect workers using `spec.jvmOptions`.
+
+```yaml
+spec:
+  jvmOptions:
+    -Xms: 1g
+    -Xmx: 2g
+    gcLoggingEnabled: true
+```
+
+Set `-Xms` and `-Xmx` according to the `spec.resources.requests.memory` and `spec.resources.limits.memory` values. Leave enough memory for non-heap usage such as thread stacks and native memory.
+
+## Configure Health Checks
+
+Customize liveness and readiness probe settings if the default values do not match your environment.
+
+```yaml
+spec:
+  livenessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 60
+    timeoutSeconds: 5
+    periodSeconds: 10
+```
+
+Increase `initialDelaySeconds` if Kafka Connect workers take longer to start, for example when loading large connector plugins.
 
 ## Verify Kafka Connect and Connectors
 
@@ -346,6 +515,29 @@ Stop the connector by setting `spec.state` to `stopped`.
 kubectl -n default patch kafkaconnector my-file-source-connector --type merge -p '{"spec":{"state":"stopped"}}'
 ```
 
+## Manage Connector Offsets
+
+You can list, alter, and reset connector offsets through the `KafkaConnector` resource. This is useful for replaying data or skipping problematic records.
+
+List current offsets by checking the connector status:
+
+```bash
+kubectl -n default get kafkaconnector my-file-source-connector -o jsonpath='{.status.connectorStatus}'
+```
+
+To reset offsets, stop the connector first and then use the Kafka Connect REST API:
+
+```bash
+kubectl -n default port-forward service/my-connect-cluster-connect-api 8083:8083
+curl -X DELETE http://localhost:8083/connectors/my-file-source-connector/offsets
+```
+
+After resetting offsets, resume the connector. The connector starts processing from the beginning or from the position defined by its offset reset policy.
+
+<Directive type="warning" title="Warning">
+Resetting offsets can cause data to be reprocessed. Only reset offsets when you understand the impact on downstream consumers and the external system.
+</Directive>
+
 ## Delete a Connector
 
 Delete the `KafkaConnector` resource to remove the connector instance from Kafka Connect:
@@ -358,23 +550,42 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 
 ## Key Configuration Parameters
 
+### KafkaConnect Resource
+
 | Parameter | Description |
 | :--- | :--- |
 | `spec.replicas` | Number of Kafka Connect worker pods. |
+| `spec.version` | Kafka Connect version. Defaults to the latest version supported by the operator. |
+| `spec.image` | Custom container image for Kafka Connect pods. |
 | `spec.bootstrapServers` | Kafka bootstrap server used by Kafka Connect. |
 | `spec.tls` | TLS configuration for encrypted Kafka connections. |
-| `spec.authentication` | Authentication configuration, such as SCRAM-SHA-512 or TLS authentication. |
+| `spec.authentication` | Authentication configuration, such as SCRAM-SHA-512, TLS, or OAuth. |
 | `spec.config.group.id` | Kafka Connect worker group ID. Use a unique value per Kafka Connect cluster. |
 | `spec.config.config.storage.topic` | Topic used to store connector configurations. |
 | `spec.config.offset.storage.topic` | Topic used to store connector offsets. |
 | `spec.config.status.storage.topic` | Topic used to store connector and task status. |
 | `spec.build` | Optional build configuration for adding connector plugins. |
+| `spec.externalConfiguration` | Mount Secrets or ConfigMaps into Kafka Connect pods for connector credential access. Deprecated in favor of environment variables. |
+| `spec.logging` | Logging configuration. Supports inline loggers or an external ConfigMap reference. |
+| `spec.metricsConfig` | Prometheus JMX exporter configuration for metrics collection. |
+| `spec.tracing` | Distributed tracing configuration. Supports OpenTelemetry. |
+| `spec.rack` | Rack awareness configuration for consuming from the closest replicas. |
+| `spec.jvmOptions` | JVM memory and GC options for Kafka Connect pods. |
+| `spec.resources` | CPU and memory resource requests and limits. |
+| `spec.livenessProbe` | Liveness probe configuration for worker pods. |
+| `spec.readinessProbe` | Readiness probe configuration for worker pods. |
+| `spec.template` | Template for customizing pod labels, annotations, affinity rules, and container environment variables. |
+
+### KafkaConnector Resource
+
+| Parameter | Description |
+| :--- | :--- |
 | `metadata.labels.strimzi.io/cluster` | Name of the `KafkaConnect` cluster that runs the connector. |
 | `spec.class` | Connector implementation class. The class must be available in the Kafka Connect image. |
 | `spec.tasksMax` | Maximum number of tasks for the connector. Actual parallelism depends on connector implementation and source or sink system capabilities. |
 | `spec.config` | Connector-specific configuration. |
 | `spec.state` | Desired connector state. Supported values are `running`, `paused`, and `stopped`. |
-| `spec.autoRestart` | Optional automatic restart policy for failed connectors or tasks. |
+| `spec.autoRestart` | Automatic restart policy for failed connectors or tasks. Set `enabled: true` and optionally `maxRestarts` to limit consecutive restarts. |
 
 ## Best Practices
 
@@ -383,10 +594,13 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 3. Configure internal topic replication factors based on the Kafka cluster size.
 4. Keep connector plugin versions compatible with the Kafka Connect runtime version.
 5. Keep one `KafkaConnector` resource per connector instance.
-6. Avoid storing secrets directly in `spec.config`.
-7. Store passwords and certificates in Kubernetes Secrets instead of plain text connector configuration.
-8. Set `tasksMax` according to connector capabilities and workload size.
-9. Monitor connector task status, restart count, lag, and error logs after deployment.
+6. Avoid storing secrets directly in `spec.config`. Use `externalConfiguration` or environment variables from Kubernetes Secrets.
+7. Set `tasksMax` according to connector capabilities and workload size.
+8. Enable `autoRestart` on all production connectors to recover from transient failures automatically.
+9. Enable Prometheus metrics and configure Grafana dashboards to monitor connector task status, restart count, lag, and error rates.
+10. Configure logging at `INFO` level by default. Use `DEBUG` only for troubleshooting specific connector issues.
+11. Use rack awareness in multi-zone clusters to reduce cross-zone network traffic.
+12. Use `spec.template` to set pod affinity and anti-affinity rules for high availability.
 
 ## Troubleshooting
 
@@ -396,7 +610,9 @@ Deleting a connector does not automatically delete Kafka topics, committed offse
 | Connector class not found | Verify that the plugin is installed and listed by `/connector-plugins`. |
 | Connector is not assigned to a Connect cluster | Verify the `strimzi.io/cluster` label. |
 | Connector stays in `NotReady` | Check whether the connector plugin class exists in `curl /connector-plugins`. |
-| Connector tasks fail or fail repeatedly | Check connector-specific configuration, worker logs, external system connectivity, and task status. |
+| Connector tasks fail or fail repeatedly | Check connector-specific configuration, worker logs, external system connectivity, and task status. Enable `autoRestart` to recover from transient failures. |
 | Connector does not process new data | Check source offsets, topic subscription, task status, and external system permissions. |
 | Authentication fails | Verify `spec.authentication`, Kafka ACLs, connector credentials, mounted secrets, and TLS configuration. |
-| Build fails | Verify registry access, plugin artifact URLs, and image pull permissions. |
+| Build fails | Verify registry access, plugin artifact URLs, push secret permissions, and image pull permissions. |
+| Metrics not available | Verify the metrics ConfigMap exists and `spec.metricsConfig` references the correct key. Check if the Prometheus exporter port is accessible. |
+| Tracing spans not visible | Verify `spec.tracing` is set, the OpenTelemetry collector is reachable, and the `OTEL_EXPORTER_OTLP_ENDPOINT` environment variable is correct. |
