@@ -21,6 +21,11 @@ i18n:
 - This aligns with the upstream Kafka community direction where ZooKeeper mode is deprecated.
 - **Important**: All existing instances must be migrated to KRaft mode before upgrading to v4.2.x. Use the v4.1.x operator for migration.
 
+#### Kafka 2 Plugin Removal
+- **The Alauda build of Kafka 2 plugin is no longer supported** in v4.2.x.
+- Kafka 2.x instances are not supported in this release.
+- Before upgrading to v4.2.x, ensure that existing instances are no longer relying on the Kafka 2 plugin.
+
 #### Kubernetes Security Hardening
 - Enhanced security configurations for Kubernetes deployments.
 - Added security context constraints for better pod isolation.
@@ -71,4 +76,3 @@ When using LoadBalancer, ensure that the cluster has available external address 
 ### Known Issues
 
 {/* release-notes-for-bugs?template=mw-kafka-v4.0-known&project=Middleware */}
-

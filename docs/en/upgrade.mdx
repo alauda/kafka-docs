@@ -25,6 +25,7 @@ The table below lists supported versions of the Alauda Streaming Service for Kaf
 <Directive type="tip" title="Important Notes">
 - **v4.2.x only supports KRaft mode**: ZooKeeper mode has been completely removed. All instances must be running in KRaft mode before upgrading to v4.2.x.
 - **Migration requirement**: If you have instances in ZooKeeper mode, you must migrate them to KRaft mode using the v4.1.x operator before upgrading to v4.2.x.
+- **Kafka 2 plugin is no longer supported**: v4.2.x does not support the Alauda build of Kafka 2 plugin or Kafka 2.x instances.
 - **Irreversible**: Once migrated to KRaft mode, rolling back to ZooKeeper mode is not supported.
 </Directive>
 
@@ -64,6 +65,7 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 
 ### Special Note for v4.2.x Upgrade
 - **KRaft Mode Requirement**: All instances must be in KRaft mode before upgrading to v4.2.x.
+- **Kafka 2 Plugin Removal**: Kafka 2.x instances and the Alauda build of Kafka 2 plugin are not supported in v4.2.x.
 - **Migration Path**: If you have instances in ZooKeeper mode:
   1. Stay on v4.1.x operator
   2. Migrate all instances to KRaft mode using the migration procedure
