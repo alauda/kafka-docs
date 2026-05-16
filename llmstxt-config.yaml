@@ -1,0 +1,24 @@
+# llms.txt generator configuration for alauda/kafka-docs
+project_name: "Alauda Kafka"
+summary: "Documentation for Alauda's Kafka platform — a Kubernetes-native managed Kafka offering with Kraft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations."
+
+include_patterns:
+  - "**/*.md"
+  - "**/*.mdx"
+
+exclude_patterns:
+  - "**/node_modules/**"
+  - "**/.git/**"
+  - "**/llms.txt"
+  - "**/CHANGELOG.md"
+  - "**/CONTRIBUTING.md"
+  - ".llmstxt-cache/**"
+  - "**/.llmstxt-cache/**"
+  - "llmstxt-state.json"
+  - "**/llmstxt-state.json"
+
+# Group entries under H2 headings starting from this base path.
+grouping_base_path: "."
+
+batch_size: 15
+description_max_words: 150

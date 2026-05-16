@@ -1,0 +1,258 @@
+{
+  "version": 1,
+  "generator_version": 3,
+  "project_name": "Alauda Kafka",
+  "summary": "Documentation for Alauda's Kafka platform — a Kubernetes-native managed Kafka offering with Kraft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations.",
+  "generated_at": "2026-05-16T10:38:59Z",
+  "include_patterns": [
+    "**/*.md",
+    "**/*.mdx"
+  ],
+  "exclude_patterns": [
+    "**/node_modules/**",
+    "**/.git/**",
+    "**/llms.txt",
+    "**/CHANGELOG.md",
+    "**/CONTRIBUTING.md",
+    ".llmstxt-cache/**",
+    "**/.llmstxt-cache/**",
+    "llmstxt-state.json",
+    "**/llmstxt-state.json",
+    "llms.txt"
+  ],
+  "grouping_base_path": ".",
+  "description_max_words": 150,
+  "files": {
+    "README.md": {
+      "sha256": "d1672079964550f132b95af28190c8cfd681fbabc605a5b6f505776d32852aca",
+      "size": 666,
+      "description": "Chinese-language contributor README covering local documentation development setup. It instructs developers to install Node.js, npm, and project dependencies with `yarn install`, recommends Visual Studio Code with the MDX plugin, and lists the `yarn dev` (live-reload dev server, with a note that left-nav changes require restart), `yarn build` (produces static output in `dist`), and `yarn serve` (preview built output) commands.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/index.mdx": {
+      "sha256": "8a33bbad778eaa2147c328bfb1df1d62fb9cb79510545552ba294595143c7445",
+      "size": 128,
+      "description": "Top-level navigation/landing page for the API Reference section. It renders an `<Overview overviewHeaders={[]}/>` component that lists child topics; it contains no narrative content of its own.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/index.mdx": {
+      "sha256": "cc4bf15b13186789e1ffcca27fd79f06cc20392d17120c302f10ffa0e0cd209c",
+      "size": 112,
+      "description": "Navigation/landing page for the Kubernetes APIs subsection. It is a frontmatter-only stub that renders an `<Overview overviewHeaders={[]}/>` component to surface the child Kafka CRD reference pages.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/kafka/index.mdx": {
+      "sha256": "e46bbc7a0f1cfa8fbafc9cc3f623ec43b048b7ba3f0763dced054b886a64df2f",
+      "size": 102,
+      "description": "Navigation/landing page for the Kafka APIs group under Kubernetes APIs. It renders an `<Overview overviewHeaders={[]}/>` component that exposes the four CRD reference pages (RdsKafka, RdsMirrorMaker2, RdsTopic, RdsKafkaUser).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/kafka/rdskafka.mdx": {
+      "sha256": "9f26e4c331f8ab11823c78050f3702df2874c396b5ad75056973043d4df85e3a",
+      "size": 129,
+      "description": "Auto-generated CRD reference page for `rdskafkas.middleware.alauda.io`, the `RdsKafka` custom resource that represents a managed Kafka cluster. The page is a single `<K8sCrd name=\"rdskafkas.middleware.alauda.io\"/>` component that renders the OpenAPI schema (spec/status fields) at build time.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/kafka/rdskafkamm2.mdx": {
+      "sha256": "96fc4c3c62dd988d225c1dcc065e8ae00edbc4bcb7d536605c957751425dc0fb",
+      "size": 156,
+      "description": "Auto-generated CRD reference page for `rdsmirrormaker2s.middleware.alauda.io`, the `RdsMirrorMaker2` custom resource used to provision MirrorMaker 2-based cross-cluster replication. The page renders the schema via `<K8sCrd name=\"rdsmirrormaker2s.middleware.alauda.io\"/>`.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/kafka/rdskafkatopic.mdx": {
+      "sha256": "2a97d97023d2b96a80ce6abc37d54cf5e0e72a2f4e431d9247df8767b32db7c4",
+      "size": 128,
+      "description": "Auto-generated CRD reference page for `rdstopics.middleware.alauda.io`, the `RdsTopic` custom resource used to declaratively manage Kafka topics (partitions, replication, configs). The page is a single `<K8sCrd name=\"rdstopics.middleware.alauda.io\"/>` component rendering the field schema.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/apis/kubernetes_apis/kafka/rdskafkauser.mdx": {
+      "sha256": "6fee0332918af89863a7b04fe266a761e19bb7f6613dcf4fc9786c6aee7556ec",
+      "size": 144,
+      "description": "Auto-generated CRD reference page for `rdskafkausers.middleware.alauda.io`, the `RdsKafkaUser` custom resource that defines Kafka users, their authentication method, and ACLs. The page renders the schema via `<K8sCrd name=\"rdskafkausers.middleware.alauda.io\"/>`.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/architecture.mdx": {
+      "sha256": "af75aa2f2661aeaebc7a1e9221f6df21c6878f13f785b18bbbd3bb534b1fcf4f",
+      "size": 1427,
+      "description": "Architecture overview of Alauda Streaming Service for Kafka, focusing on KRaft mode. It explains how Kafka's native Raft consensus replaces ZooKeeper, and enumerates KRaft benefits: simplified architecture, scaling to millions of partitions, sub-second controller failover, linearizable metadata consistency, and support for both combined (broker+controller) and dedicated deployment modes.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/10-create-instance.mdx": {
+      "sha256": "c2fdd2b9c332979c495deb608824c85e5905b8190cbbf5013b435e9df46a496c",
+      "size": 13334,
+      "description": "Step-by-step guide to creating a Kafka instance via the `RdsKafka` CR (`apiVersion: middleware.alauda.io/v1`) or the Web Console. Covers a 3-replica KRaft-mode example with `entityOperator` (topic/user operators, TLS sidecar), broker `config` keys (e.g. `auto.create.topics.enable`, `log.retention.hours`, `min.insync.replicas`), storage class, NodePort listeners, and a dedicated `controller` stanza; also documents `kubectl get rdskafka` STATUS values (Creating/Updating/Failed/Paused/Restarting/Active) and a single-node variant that sets `default.replication.factor`, `offsets.topic.replication.factor`, `transaction.state.log.replication.factor`, and `transaction.state.log.min.isr` to 1.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/100-data-sync.mdx": {
+      "sha256": "e34dd07c81424b19f233689c9bf75899e6b6e8bde1020b7f5e59aaf56f12ce03",
+      "size": 6170,
+      "description": "Guide for replicating data from a source Kafka cluster into this instance using MirrorMaker 2. Shows a full `RdsMirrorMaker2` CR example (`middleware.alauda.io/v1`) with `bootstrapServers`, topic/group patterns, and `sourceConnector`/`checkpointConnector` configs (`replication.factor`, `offset-syncs.topic.replication.factor`, `sync.topic.acls.enabled`, `refresh.topics.interval.seconds`, `sync.group.offsets.enabled`, `emit.checkpoints.interval.seconds`), notes the `IdentityReplicationPolicy` preserves original topic names, documents Web Console enablement and monitoring of transmission status/replication lag, and warns that `sync.topic.acls.enabled` is forced to false when user-operator is enabled.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/15-delete-instance.mdx": {
+      "sha256": "07376460e481e1b8949ebbc4e0e550219011c7b2ccd64b0bcd6d4ee4ab152e53",
+      "size": 1721,
+      "description": "Procedure for deleting a Kafka instance and the resources its Operator created (StatefulSet, ConfigMap, Secret, PVC). Shows `kubectl delete rdskafka <name>` and an optional follow-up `kubectl delete pvc -l strimzi.io/cluster=<name>,strimzi.io/kind=Kafka` to release persistent storage, plus the equivalent Web Console flow with a 'Delete Persistent Volume Claim' checkbox.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/20-user.mdx": {
+      "sha256": "d2c2bdd001d4a93716f428a141bf09b0238c811e743a97e52fad18a3cfe2f5e4",
+      "size": 1559,
+      "description": "Web Console procedure for creating Kafka users on a running instance via the User Management tab. Covers selecting an Authentication Method (must match the instance's, e.g. SCRAM-SHA-512) and Permissions over topics/consumers/transactions, and notes that user credentials are stored in a secure dictionary with a recommendation to rotate SCRAM-SHA-512 passwords periodically.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/30-topic.mdx": {
+      "sha256": "30286f622bac6915014cba51512162b3cbedbe6330ff13b51ef68a7f2ed21edb",
+      "size": 2237,
+      "description": "Web Console workflows for managing Kafka topics under an instance's Topic Management tab. Covers creating a topic (where Topic Name defaults to the Kubernetes resource name if left blank), synchronizing Running-state topics, expanding partition count and selecting brokers, and explicitly placing each partition's replicas on chosen brokers via Actions > Manage Partitions.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/40-parameter.mdx": {
+      "sha256": "29d3d26c6ecb7141eeecd62e7f46028dbbf4ac0c400190f4213af73fb3cbfcff",
+      "size": 13364,
+      "description": "Reference for the broker `spec.config` keys exposed via the parameter template. Demonstrates updates with `kubectl patch rdskafka <name> --type=merge --patch='{\"spec\":{\"config\":{\"auto.create.topics.enable\":\"true\"}}}'` and the Web Console's Update Parameters tab, lists prefixes blocked for safety (`advertised.`, `authorizer.`, `broker.`, `controller`, `listener.`, `log.dir`, `sasl.`, `security.`, `ssl.`, `super.user`, etc.), and includes a table of dozens of supported keys with types, defaults, and ranges (e.g. `compression.type`, `log.retention.hours`, `min.insync.replicas`, `num.io.threads`, `offsets.topic.replication.factor`, `unclean.leader.election.enable`).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/60-scheduling.mdx": {
+      "sha256": "12baf7fc4c12e23e1c5f828b56f8d5030d8b199593c97d7d5b7f301eef5bfdb7",
+      "size": 1162,
+      "description": "Walks through updating an existing Kafka instance's Pod tolerations via the Web Console (Kafka > namespace > instance > Actions > Update Scheduling Configuration) when node taints change. Stresses that Pod migration is not supported, so the new tolerated node set must be a superset of the original, and that when node labels are used, matching node count must remain at least the replica count.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/75-monitor.mdx": {
+      "sha256": "e054c609b1e43bfebe672b9111ceac470351c7a8f96bc2429adfa490e80ae0ad",
+      "size": 2299,
+      "description": "Describes the embedded Grafana monitoring tab on a Kafka instance, which collects resource metrics (memory, CPU, JVM), performance metrics (producer request rate, incoming message rate), and capacity metrics like log size. Also explains creating Metric Alerts (Pod-level predefined metrics) and Custom Alerts (Kafka performance metrics) through Alauda Application Services' Alerts > Rules page, handling them when triggered, and binding notification policies for email/SMS delivery.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/80-log.mdx": {
+      "sha256": "b23d270684d9644257df7f4bcf991d75b2fa21deeea7c9a6c6f928c0772381fa",
+      "size": 842,
+      "description": "Shows how to use the instance's Realtime Log tab in the Web Console to inspect container-level logs (e.g., Kafka error logs) per Pod for troubleshooting, including filtering by a specific Pod such as a Kafka replica and exporting log results via the export button.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/85-start-stop.mdx": {
+      "sha256": "920b9926e23ef5d366b36a7242901d062c2a28c4723e47752b4f181e9b66cc1a",
+      "size": 2343,
+      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page for releasing CPU/memory without deleting the instance — useful for scheduled downtime, heavy load, or dev/test. Lists supported instance versions (2.5.0, 2.7.0, 2.8.2) and required states (Processing/Running/Abnormal/Unknown to stop; Stopping/Stopped to start), and enumerates features disabled while stopped: Terminal Console, Actions (restart/update/scheduling), Topology, Parameter Configuration, User Management, Topic Management, Consumer Groups, Inspection, and Access Method.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/90-restart.mdx": {
+      "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
+      "size": 1110,
+      "description": "Explains restarting a Kafka instance from Actions > Restart in the Web Console to recover from runtime failures, excessive connections, or unknown issues. Notes the Pods are restarted one by one (causing brief interruption), requires Running state to initiate manually, and clarifies that Processing/Error states will auto-restart after the health-check timeout.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/functions/index.mdx": {
+      "sha256": "2b06eee638164461681d2d8279217d76f835de7521989e620cff096cc38a5a5e",
+      "size": 170,
+      "description": "Navigation/landing page for the Feature Guide section that renders an `<Overview />` of child topics (instance creation, parameter configuration, topic/user/consumer-group management, scheduling, monitoring, logs, start/stop, and restart).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/10-spec-scaling.mdx": {
+      "sha256": "5653eec3c7f2d48ce5b2bd3c71c84fdf2b4e28788fd7506afd946b4408112515",
+      "size": 2478,
+      "description": "How-to for changing a Kafka instance's specifications and replica count, either via Web Console (Details tab > Specification Changes above the topology) or by patching the RDSKafka CR's `spec.resources` with `kubectl patch rdskafka`. Highlights restrictions: replica changes must respect existing scheduling settings, all Brokers should be scaled to the same specification to avoid storage imbalance requiring data migration, and CPU/memory changes must match real capacity to prevent startup failures.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/20-connect.mdx": {
+      "sha256": "cc5b72093ed85276dd8d324d892a2080db2744d4b968d26252041ab5f2a188f0",
+      "size": 20467,
+      "description": "Comprehensive guide for selecting a Kafka bootstrap address (internal vs. external, with/without SCRAM-SHA-512 or TLS authentication, plain vs. encrypted transport) and configuring the corresponding Java client `Properties` — including `bootstrap.servers`, `security.protocol` (SSL/SASL_PLAINTEXT/SASL_SSL), `sasl.mechanism`, `sasl.jaas.config`, and SSL truststore/keystore. Provides full producer code samples for five scenarios and the `kubectl get secret` commands needed to extract `ca.p12`, `user.p12`, and their passwords from the `<name>-cluster-ca-cert` and Kafka User secrets.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/30-upgrade.mdx": {
+      "sha256": "a87bb79aed19072cc0170392e9cd9a53e2604cc845118c0e84af9d5622b25900",
+      "size": 2092,
+      "description": "Procedure for patch-version upgrades of a Kafka instance to apply vulnerability fixes and new features. Covers setting the Patch Version Upgrade Strategy (Manual or Automatic), performing a single-instance upgrade via the Upgrade Now prompt on the instance details page, and Batch Patch Version Upgrade through Upgrade Management > operator details (requires platform administrator permission); warns of one-by-one Pod restarts that may briefly interrupt service.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/40-config.mdx": {
+      "sha256": "f8b73e1bd60df4cbd79505970fe285f0184bec41c395d40b01f817a3af178d44",
+      "size": 4201,
+      "description": "Walks operators through preparing client-side files for encrypted/authenticated access from a control node. Shows the `kubectl get secret <name>-cluster-ca-cert` and `kubectl get secret <Kafka user>` commands to extract `ca.p12`, `user.p12`, and their passwords; presents three sample property files (`client-ssl.properties` without auth, `client.properties` for SCRAM-SHA-512, and `client-ssl.properties` for TLS) with PKCS12 truststore/keystore settings; and explains using `kubectl cp` for intra-cluster delivery and the `ssl.endpoint.identification.algorithm=` setting for external access.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/50-migrate-to-kraft.mdx": {
+      "sha256": "bb0193a8d1d86a44facecdd350b52a9c561c89a7ca17a7f6550a17156bb09a2f",
+      "size": 3688,
+      "description": "Step-by-step CLI migration of a Kafka instance from ZooKeeper to KRaft mode using `kubectl patch rdsKafka <name> --type=merge -p '{\"spec\":{\"mode\":\"KRaft\"}}'`, monitored via `.status.phase` transitions (Migrating > Active). Stresses that v4.2.x operator only supports KRaft and migration must complete on v4.1.x, requires Kafka 3.8+, is irreversible, may cause temporary service interruption, and changes Pod/svc names so clients not using the `bootstrap` or `external-bootstrap` services must update connection addresses; recommends post-migration connectivity, data-integrity, and controller-performance checks.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/how_to/index.mdx": {
+      "sha256": "495064ba49578a1a40029200fee9765fdcc135e4e6fc4b45d1873c7f56b7aa32",
+      "size": 171,
+      "description": "Navigation/landing page for the How-To Practical Guide section that renders an `<Overview />` of the child task-oriented topics (scaling specifications, choosing connection methods, patch-version upgrade, client file configuration, and ZooKeeper-to-KRaft migration).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/index.mdx": {
+      "sha256": "1ab8b46c2436e7025479813c2adbe456d47e917108ea68fcdd2c4633a0b0024e",
+      "size": 133,
+      "description": "Top-level documentation navigation stub that renders only `<Overview overviewHeaders={[]} />` to list the English documentation sections (introduction, install, functions, how-to, etc.).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/installation.mdx": {
+      "sha256": "3a8afe860d53157db3bfc3b3d4e6ccb7bd7107ffc26e388fd1abe0b5ecaa9ede",
+      "size": 6217,
+      "description": "Install guide for the platform plugins that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), the Alauda Streaming Service for Kafka plugin (the core operator, installed via OperatorHub with stable channel and Cluster installation mode), and the optional Alauda build of Kafka 2 plugin for managing 2.x version instances. Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/intro.mdx": {
+      "sha256": "ba48a61662e7ab7f13b2655487054c1ec8127235ff13e50161890b7490bdb17c",
+      "size": 4878,
+      "description": "Introduces Apache Kafka (distributed stream processing platform with Producers, Consumers, Topics, Brokers; partitioning and replication for reliability) and the Alauda Streaming Service for Kafka — a Kubernetes-native operator that manages the full Kafka lifecycle declaratively. Enumerates key product features: KRaft mode support (combined or dedicated controller roles, faster failover), TLS encryption and user authentication/authorization, NodePort/LoadBalancer access with IPv4/IPv6 support, horizontal Broker scaling and vertical CPU/memory adjustment, smooth version upgrades with multi-replica HA, NodeSelector/Toleration/Affinity scheduling, and automated rolling scaling and zero-downtime upgrades.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/lifecycle_policy.mdx": {
+      "sha256": "a0aff7b2bbef0f01f1be77e5795389d5e99c8109bfcc79e0f53df98771616db9",
+      "size": 1758,
+      "description": "Publishes the version lifecycle timeline and rolling support model for Alauda Streaming Service for Kafka, listing release dates and end-of-support windows for v4.1.x (2025-08-18) and v4.2.x (2026-02-06), where each minor version is supported until one month after the next minor release. Documents the maintenance services Alauda provides during a version's support window: security updates, bug fixes aligned with upstream Kafka community fixes, upgrade assistance, and regular operator maintenance for Kubernetes compatibility.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/release_notes.mdx": {
+      "sha256": "e89b58211488881f46a229a82ca201bb72beaaa10820123bfe9814412507741e",
+      "size": 2673,
+      "description": "Per-version changelog for Alauda Streaming Service for Kafka covering v4.0.0 through v4.2.0. Highlights include v4.2.0 adopting community Kafka 4.1.1 by default and completely removing ZooKeeper mode (KRaft-only, requiring pre-upgrade migration via the v4.1.x operator) plus Kubernetes security hardening; v4.1.0 adding MirrorMaker 2-based data transfer with monitoring/alerting and initial KRaft instance creation for 3.x; and v4.0.0 decoupling the component lifecycle from the platform, adding real-time component logs, and introducing LoadBalancer-type external access (recommended with MetalLB over NodePort for production).",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    },
+    "docs/en/upgrade.mdx": {
+      "sha256": "97e3082ed2881b84a0c2f8517a2aca23da29655e959b0a7737ba9c7db3cdaa4f",
+      "size": 3923,
+      "description": "Upgrade-path guide for Alauda Streaming Service for Kafka, presenting the compatibility matrix that maps operator versions (v4.0.x, v4.1.x, v4.2.x) to supported Kafka versions (4.1.1; 3.8.1; 2.8.2 with plugin), KRaft/ZooKeeper mode support, and minimum Kubernetes versions (1.25+/1.27+). Documents prerequisites including verifying every rdskafka instance has `spec.mode: KRaft` via a `kubectl get rdskafka -A` custom-columns query, the mandatory ZooKeeper-to-KRaft migration through the v4.1.x operator before moving to v4.2.x (no rollback), and the recommended consecutive minor-version upgrade path. Also describes the Automatic vs. Manual upgrade strategies the operator honors when new component versions are detected.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-05-16T10:38:59Z"
+    }
+  }
+}
