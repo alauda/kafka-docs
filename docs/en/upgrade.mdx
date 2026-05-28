@@ -18,13 +18,16 @@ The table below lists supported versions of the Alauda Streaming Service for Kaf
 
 | Alauda Kafka Version |  Kafka Versions                | Mode Support        | Kubernetes Versions |
 |:--------------------:|:------------------------------:|:-------------------:|:-------------------:|
-| v4.2.x               | 4.1.1                          | KRaft               | 1.27+               |
+| v4.3.x               | 4.2.0                          | KRaft               | 1.27+               |
+| v4.2.x               | 4.1.2                          | KRaft               | 1.27+               |
 | v4.1.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
 | v4.0.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
 
 <Directive type="tip" title="Important Notes">
-- **v4.2.x only supports KRaft mode**: ZooKeeper mode has been completely removed. All instances must be running in KRaft mode before upgrading to v4.2.x.
-- **Migration requirement**: If you have instances in ZooKeeper mode, you must migrate them to KRaft mode using the v4.1.x operator before upgrading to v4.2.x.
+- **v4.2.x and later only support KRaft mode**: ZooKeeper mode has been completely removed. All instances must be running in KRaft mode before upgrading to v4.2.x or later.
+- **Migration requirement**: If you have instances in ZooKeeper mode, you must migrate them to KRaft mode using the v4.1.x operator before upgrading to v4.2.x or later.
+- **Kafka 2 plugin is no longer supported**: v4.2.x and later do not support the Alauda build of Kafka 2 plugin or Kafka 2.x instances.
+- **Kafka 4.2.0 requires Alauda Container Platform Data Services RDS Framework 4.2.2 or later**: Upgrade RDS Framework before rolling Kafka instances to Kafka 4.2.0.
 - **Irreversible**: Once migrated to KRaft mode, rolling back to ZooKeeper mode is not supported.
 </Directive>
 
@@ -35,15 +38,15 @@ Before initiating an upgrade, please ensure the following:
 1. **Version Compatibility**: Your current version falls within a supported upgrade path.
 2. **Component Health**: Kafka instances are in a `Ready` state.
 3. **Resource Availability**: The cluster has sufficient resources to support the upgrade process.
-4. **KRaft Mode Verification**:  Verify that all rdskafka instances have `spec.mode` set to `KRaft`.
+4. **RDS Framework Version for v4.3.x**: Ensure Alauda Container Platform Data Services RDS Framework is version 4.2.2 or later before upgrading Kafka instances to Kafka 4.2.0.
+5. **KRaft Mode Verification**:  Verify that all rdskafka instances have `spec.mode` set to `KRaft`.
    - You can use the following command to check the mode of all Kafka instances:
      ```bash
      kubectl get rdskafka -A -o custom-columns="NAME:.metadata.name,NAMESPACE:.metadata.namespace,MODE:.spec.mode,PHASE:.status.phase"
      ```
-   - If any instance is **not in KRaft mode** , you **must** migrate it to KRaft mode using the v4.1.x operator before upgrading to v4.2.x.
-   - The v4.2.x operator does not support ZooKeeper mode and will not handle migration from ZooKeeper to KRaft.
+   - If any instance is **not in KRaft mode** , you **must** migrate it to KRaft mode using the v4.1.x operator before upgrading to v4.2.x or later.
+   - The v4.2.x and later operators do not support ZooKeeper mode and will not handle migration from ZooKeeper to KRaft.
    - A migration plan from ZooKeeper mode to Kraft mode is available ([migrate to kraft](../how_to/50-migrate-to-kraft.mdx)).
-
 
 For version-specific changes, new features, and deprecations, see the 📝 **[Release Notes](./release_notes.mdx)**.
 
@@ -51,7 +54,7 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 
 ### Consecutive Upgrade (Recommended)
 - **Description**: Upgrade step-by-step through consecutive minor versions.
-- **Example**: `4.1.x → 4.2.x`
+- **Example**: `4.1.x → 4.2.x → 4.3.x`
 
 ### Patch-Level Upgrade
 - **Description**: Upgrades between any patch versions within the same minor version are fully compatible and can be performed directly.
@@ -60,16 +63,24 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 ### Kafka Version Alignment
 - **Description**: Ensure Kafka version upgrades follow the operator's compatibility matrix.
 - **Example**:
+  - Alauda Streaming Service for Kafka `4.3.x` supports Kafka `4.2.0`.
+  - Alauda Streaming Service for Kafka `4.2.x` supports Kafka `4.1.2`.
   - Alauda Streaming Service for Kafka `4.1.x` supports Kafka `3.8.1` or Kafka `2.8.2` (with plugin).
 
-### Special Note for v4.2.x Upgrade
-- **KRaft Mode Requirement**: All instances must be in KRaft mode before upgrading to v4.2.x.
+### Special Note for v4.2.x and Later Upgrades
+- **KRaft Mode Requirement**: All instances must be in KRaft mode before upgrading to v4.2.x or later.
+- **Kafka 2 Plugin Removal**: Kafka 2.x instances and the Alauda build of Kafka 2 plugin are not supported in v4.2.x or later.
 - **Migration Path**: If you have instances in ZooKeeper mode:
   1. Stay on v4.1.x operator
   2. Migrate all instances to KRaft mode using the migration procedure
   3. Verify all instances are running successfully in KRaft mode
-  4. Upgrade operator to v4.2.x
+  4. Upgrade operator to v4.2.x or later
 - **No Rollback to ZooKeeper**: Once migrated to KRaft mode, rolling back to ZooKeeper mode is not supported.
+
+### Special Note for v4.3.x Upgrade
+- **Kafka Runtime Upgrade**: v4.3.x supports Kafka `4.2.0`. Existing Kafka instances should be upgraded after the operator is healthy and the instance upgrade strategy allows it.
+- **RDS Framework Requirement**: Kafka `4.2.0` support depends on Alauda Container Platform Data Services RDS Framework `4.2.2` or later. Verify the RDS Framework version before rolling Kafka instances to `4.2.0`.
+- **Recommended Path**: Upgrade from `4.2.x` to `4.3.x` first, verify operator and instance health, then roll Kafka instances to `4.2.0`.
 
 ## Upgrade strategy
 

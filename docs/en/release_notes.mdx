@@ -8,6 +8,47 @@ i18n:
 
 # Release Notes
 
+## v4.3.2
+
+### New and Optimized Features
+
+#### Community Kafka 4.2.0 Support
+- Added support for the community Kafka version 4.2.0.
+- New instances created with v4.3.2 use Kafka 4.2.0 by default.
+- To support Kafka 4.2.0 in the v4.3.x release, Alauda Container Platform Data Services RDS Framework must be version 4.2.2 or later.
+
+#### Strimzi Kafka Operator Update
+- Updated the Strimzi Kafka Operator component to the v4.3.x line, based on upstream Strimzi 0.48.0.
+- Updated operator defaults and Kafka images to Kafka 4.2.0.
+- Updated the Kafka Bridge image tag to v4.1.3.
+
+#### Kafka Console Fixes
+- Updated the Kafka console image in the operator bundle.
+- Removed the hard-coded Kafka 4.1 default version. New instances now use the current supported Kafka version from the installed component version.
+- Improved Kafka version list handling by de-duplicating display versions and preserving the current instance version during updates.
+- Improved architecture mode selection so Kafka 3.x uses ZooKeeper mode and Kafka 4.x uses KRaft mode by default.
+- Fixed Kafka console icon asset packaging.
+
+### Fixed Issues
+
+#### Security Fixes
+- Updated Kafka runtime dependencies to address known vulnerabilities.
+- Fixed known vulnerabilities in upstream Kafka dependencies.
+
+## v4.2.2
+
+### New and Optimized Features
+
+#### Community Kafka 4.1.2 Support
+- Added support for the community Kafka version 4.1.2.
+- New instances created with v4.2.2 use Kafka 4.1.2 by default.
+
+### Fixed Issues
+
+#### Security Fixes
+- Updated the Kafka runtime to include upstream security fixes from Kafka 4.1.2.
+- Fixed known vulnerabilities in upstream Kafka dependencies.
+
 ## v4.2.0
 
 ### New and Optimized Features
@@ -71,4 +112,3 @@ When using LoadBalancer, ensure that the cluster has available external address 
 ### Known Issues
 
 {/* release-notes-for-bugs?template=mw-kafka-v4.0-known&project=Middleware */}
-
