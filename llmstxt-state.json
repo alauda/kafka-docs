@@ -150,11 +150,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/functions/85-start-stop.mdx": {
-      "sha256": "920b9926e23ef5d366b36a7242901d062c2a28c4723e47752b4f181e9b66cc1a",
-      "size": 2343,
-      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page for releasing CPU/memory without deleting the instance — useful for scheduled downtime, heavy load, or dev/test. Lists supported instance versions (2.5.0, 2.7.0, 2.8.2) and required states (Processing/Running/Abnormal/Unknown to stop; Stopping/Stopped to start), and enumerates features disabled while stopped: Terminal Console, Actions (restart/update/scheduling), Topology, Parameter Configuration, User Management, Topic Management, Consumer Groups, Inspection, and Access Method.",
+      "sha256": "6a390135320a225b61c3008e0a28f56d878dd7ca04c1e39cc91ae2a131e635e4",
+      "size": 2498,
+      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page. The feature is limited to Kafka 2.x instances managed by the optional Alauda build of Kafka 2 plugin, supporting versions 2.5.0, 2.7.0, and 2.8.2; Kafka 4.x instances do not support start and stop operations. It also lists required states and the features disabled while stopped.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-06-02T00:00:00Z"
     },
     "docs/en/functions/90-restart.mdx": {
       "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
