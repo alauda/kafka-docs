@@ -47,7 +47,7 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
             requests:
               cpu: 200m
               memory: 128Mi
-      version: 4.1
+      version: 4.2
       replicas: 3
       config:
         auto.create.topics.enable: "false"
@@ -170,8 +170,8 @@ After creating the instance, you can check the status of the instance using the 
 ```bash
 $ kubectl get rdskafka -n <namespace> -o=custom-columns=NAME:.metadata.name,VERSION:.spec.version,STATUS:.status.phase,MESSAGE:.status.reason,CreationTimestamp:.metadata.creationTimestamp
 NAME         VERSION   STATUS   MESSAGE                                   CreationTimestamp
-my-cluster   4.1       Active   <none>                                    2025-03-06T08:46:57Z
-test41       4.1       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
+my-cluster   4.2       Active   <none>                                    2025-03-06T08:46:57Z
+test42       4.2       Failed   Pod is unschedulable or is not starting   2025-03-06T08:46:36Z
 ```
 
 The meanings of the output table fields are as follows:
@@ -179,7 +179,7 @@ The meanings of the output table fields are as follows:
 | Field                | Description                                                                                                                                                                                                   |
 | :---------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | NAME              | Instance Name                                                                                                                                                                                                 |
-| VERSION           | Currently only supports version: `4.1`                                                                                                                                                         |
+| VERSION           | Currently only supports version: `4.2`                                                                                                                                                         |
 | STATUS            | The current status of the instance, which may have the following statuses: <ul><li>`Creating`: The instance is being created</li><li>`Updating`: The instance is being updated</li><li>`Failed`: The instance has encountered an unrecoverable error</li><li>`Paused`: The instance has been manually paused</li><li>`Restarting`: The instance is restarting</li><li>`Active`: The instance is ready for use</li></ul> |
 | MESSAGE           | The reason for the instance's current status                                                                                                                                                                                          |
 | CreationTimestamp | The timestamp when the instance was created                                                                                                                                                                                              |
@@ -228,7 +228,7 @@ The meanings of the output table fields are as follows:
             requests:
               cpu: 200m
               memory: 128Mi
-      version: 4.1
+      version: 4.2
       replicas: 1
       config:
         auto.create.topics.enable: "false"

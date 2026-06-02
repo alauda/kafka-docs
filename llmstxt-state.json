@@ -149,13 +149,6 @@
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
-    "docs/en/functions/85-start-stop.mdx": {
-      "sha256": "920b9926e23ef5d366b36a7242901d062c2a28c4723e47752b4f181e9b66cc1a",
-      "size": 2343,
-      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page for releasing CPU/memory without deleting the instance — useful for scheduled downtime, heavy load, or dev/test. Lists supported instance versions (2.5.0, 2.7.0, 2.8.2) and required states (Processing/Running/Abnormal/Unknown to stop; Stopping/Stopped to start), and enumerates features disabled while stopped: Terminal Console, Actions (restart/update/scheduling), Topology, Parameter Configuration, User Management, Topic Management, Consumer Groups, Inspection, and Access Method.",
-      "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
-    },
     "docs/en/functions/90-restart.mdx": {
       "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
       "size": 1110,
@@ -166,7 +159,7 @@
     "docs/en/functions/index.mdx": {
       "sha256": "2b06eee638164461681d2d8279217d76f835de7521989e620cff096cc38a5a5e",
       "size": 170,
-      "description": "Navigation/landing page for the Feature Guide section that renders an `<Overview />` of child topics (instance creation, parameter configuration, topic/user/consumer-group management, scheduling, monitoring, logs, start/stop, and restart).",
+      "description": "Navigation/landing page for the Feature Guide section that renders an `<Overview />` of child topics (instance creation, parameter configuration, topic/user/consumer-group management, scheduling, monitoring, logs, and restart).",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
