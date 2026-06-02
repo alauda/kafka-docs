@@ -149,6 +149,13 @@
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
+    "docs/en/functions/85-start-stop.mdx": {
+      "sha256": "6a390135320a225b61c3008e0a28f56d878dd7ca04c1e39cc91ae2a131e635e4",
+      "size": 2498,
+      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page. The feature is limited to Kafka 2.x instances managed by the optional Alauda build of Kafka 2 plugin, supporting versions 2.5.0, 2.7.0, and 2.8.2; Kafka 4.x instances do not support start and stop operations. It also lists required states and the features disabled while stopped.",
+      "generation_method": "ai_agent_reading",
+      "updated_at": "2026-06-02T00:00:00Z"
+    },
     "docs/en/functions/90-restart.mdx": {
       "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
       "size": 1110,
@@ -159,7 +166,7 @@
     "docs/en/functions/index.mdx": {
       "sha256": "2b06eee638164461681d2d8279217d76f835de7521989e620cff096cc38a5a5e",
       "size": 170,
-      "description": "Navigation/landing page for the Feature Guide section that renders an `<Overview />` of child topics (instance creation, parameter configuration, topic/user/consumer-group management, scheduling, monitoring, logs, and restart).",
+      "description": "Navigation/landing page for the Feature Guide section that renders an `<Overview />` of child topics (instance creation, parameter configuration, topic/user/consumer-group management, scheduling, monitoring, logs, start/stop, and restart).",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
