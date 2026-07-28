@@ -1,0 +1,79 @@
+---
+weight: 90
+---
+
+# KafkaConnect Connector Stays in NotReady
+
+A `KafkaConnector` in `NotReady` usually means the connector class exists, but the connector instance cannot start successfully.
+
+This document describes the most common reasons why a connector remains in `NotReady`, how to distinguish plugin problems from runtime problems, and what to check before retrying or increasing restart count.
+
+## What `NotReady` Usually Means
+
+In most cases, `NotReady` means Kafka Connect accepted the connector resource, but one of the following failed:
+
+- The connector configuration is invalid
+- The connector task could not start
+- The connector could not authenticate to its source or sink system
+- Required files, secrets, or environment variables are missing
+- The connector class exists, but the runtime still fails during initialization
+
+## Common Causes
+
+- Connector configuration is invalid
+- Required secrets or external configuration are missing
+- The target system is unreachable
+- Authentication or authorization to the external system fails
+- The connector task crashes repeatedly after startup
+
+## What to Check
+
+1. Check the `KafkaConnector` status, conditions, and task-level messages.
+2. Review Kafka Connect worker logs and task failure messages around the time the connector entered `NotReady`.
+3. Verify all required secrets, file mounts, and environment variables.
+4. Test connectivity to the source or sink system from the cluster network.
+5. Confirm the connector class is present in `/connector-plugins`.
+6. Verify that the connector configuration matches the plugin documentation exactly, especially required properties.
+
+## Distinguish Plugin Problems from Runtime Problems
+
+It is useful to separate two common cases:
+
+- **Plugin discovery problem**: The connector class does not appear in `/connector-plugins`. In this case, the plugin is not available to Kafka Connect and the issue is in image build, plugin delivery, or plugin path.
+- **Runtime startup problem**: The class appears in `/connector-plugins`, but the connector still remains `NotReady`. In this case, the problem is usually configuration, credentials, network connectivity, or an external system dependency.
+
+## Typical Runtime Failure Scenarios
+
+Common examples include:
+
+- JDBC, CDC, or sink connector cannot connect to the target database
+- Username, password, token, or TLS material is missing or incorrect
+- `${file:...}` references point to a path that does not exist in the Kafka Connect pod
+- Required topics do not exist or the connector user lacks Kafka ACLs
+- Task startup succeeds briefly and then fails repeatedly because of invalid source or sink configuration
+
+## Recommendations
+
+### Validate the Minimal Configuration First
+
+Start with the smallest configuration that the connector plugin requires. Once the connector reaches `Ready`, add optional tuning parameters step by step.
+
+### Check Secrets and File References Carefully
+
+Many `NotReady` incidents are caused by missing credentials or wrong mount paths. If the connector uses `${file:...}` references, confirm that the referenced file actually exists in the running pod and that the path matches the connector configuration.
+
+### Verify External Connectivity
+
+If the connector talks to a database, API, object store, or other external service, confirm that the endpoint is reachable from the cluster and that authentication succeeds independently of Kafka Connect.
+
+### Use `autoRestart` Correctly
+
+`autoRestart` is useful for transient errors, but it does not fix broken configuration. If the connector is failing for the same reason every time, repeated restarts only add noise and log volume.
+
+## Best Practices
+
+1. Start with a minimal working connector configuration.
+2. Add credentials and optional parameters step by step.
+3. Check task-level failures, not only resource status fields.
+4. Treat `/connector-plugins` as the source of truth for plugin availability.
+5. Fix configuration and connectivity issues before increasing task count or restart limits.
