@@ -1,0 +1,20 @@
+spring:
+  application:
+    name: kafka-tls-sample
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: ${KAFKA_GROUP:spring-demo}
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+
+demo:
+  topic: spring-demo-topic
+
+logging:
+  level:
+    org.apache.kafka.clients.NetworkClient: ERROR

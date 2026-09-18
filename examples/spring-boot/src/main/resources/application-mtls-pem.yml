@@ -1,0 +1,9 @@
+spring:
+  kafka:
+    security:
+      protocol: SSL
+    ssl:
+      trust-store-type: PEM
+      trust-store-location: file:${KAFKA_CA_PEM}
+      key-store-type: PEM
+      key-store-location: file:${KAFKA_USER_PEM}

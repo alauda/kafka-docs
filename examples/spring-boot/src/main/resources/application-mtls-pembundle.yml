@@ -1,0 +1,15 @@
+spring:
+  ssl:
+    bundle:
+      pem:
+        kafka:
+          truststore:
+            certificate: file:${KAFKA_CA_PEM}
+          keystore:
+            certificate: file:${KAFKA_USER_CRT}
+            private-key: file:${KAFKA_USER_KEY}
+  kafka:
+    security:
+      protocol: SSL
+    ssl:
+      bundle: kafka
