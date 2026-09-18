@@ -235,7 +235,7 @@ choosing this type.
   </Tab>
 </Tabs>
 
-## Making TLS hostname verification work
+## Making TLS hostname verification work \{#making-tls-hostname-verification-work}
 
 By default a Kafka client verifies that the address it dialled appears in the broker certificate.
 For an `external` listener of type `nodeport` this fails out of the box:
@@ -265,7 +265,7 @@ certificates are issued, so they are included automatically.
 | [Synchronize node addresses automatically](#option-3-synchronize-node-addresses-automatically) | Node IP addresses | Node IP address and port | Nodes change and restarts are acceptable |
 | [Disable verification on the client](#option-4-disable-verification-on-the-client) | Unchanged | Any | Nothing else is possible |
 
-### Option 1: Advertise your own hostnames
+### Option 1: Advertise your own hostnames \{#option-1-advertise-your-own-hostnames}
 
 `advertisedHost` does two things at once: the name is added to that broker's certificate, and it
 replaces the node address the broker advertises to clients.
@@ -305,7 +305,7 @@ DNS requirements:
 - If a fixed-port load balancer sits in front of the node ports, set `advertisedPort` as well so
   brokers advertise the load balancer port instead of the node port.
 
-### Option 2: List the node addresses
+### Option 2: List the node addresses \{#option-2-list-the-node-addresses}
 
 `alternativeNames` adds names to **every** broker certificate without changing what the brokers
 advertise. Clients keep connecting to node IP addresses and ports.
@@ -332,7 +332,7 @@ that is not in the list, clients start failing verification again.
 
 This option suits bare-metal clusters with a small, fixed node pool.
 
-### Option 3: Synchronize node addresses automatically
+### Option 3: Synchronize node addresses automatically \{#option-3-synchronize-node-addresses-automatically}
 
 `autoConfigAlternativeNames` makes the operator keep `alternativeNames` in step with the addresses
 of the nodes currently running brokers.
@@ -371,7 +371,7 @@ on for an already running instance can leave the instance in the `Updating` phas
 synchronization never taking effect. Set it at creation time, or use Option 1 or Option 2 instead.
 </Directive>
 
-### Option 4: Disable verification on the client
+### Option 4: Disable verification on the client \{#option-4-disable-verification-on-the-client}
 
 If none of the above is possible, turn off hostname verification in the client:
 
