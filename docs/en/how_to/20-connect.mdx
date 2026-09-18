@@ -1,348 +1,420 @@
 ---
 weight: 20
-sourceSHA: 963a2c6c19605e94a7153a51d235d10e0d7d22a70a7d2313ce0fefd0e3a43ee2
 ---
 
-# Choosing Connection Address and Configuring Connection Method
+# Configuring Access and Finding Connection Addresses
 
-When business applications access Kafka instances, there are multiple connection methods. This section describes how to choose the connection address, access the Kafka instance through this address, and provides examples.
+This document covers the **server side** of connecting to a Kafka instance: which listeners to
+enable, what each one exposes, how to find the resulting connection address, and how to make TLS
+hostname verification work for clients outside the cluster.
 
-## Description of Connection Methods Provided by the Server and Applicable Scenarios
+For the **client side** — which certificates to extract and which properties to set — see
+[Client Configuration Reference](./40-config.mdx).
 
-When creating a Kafka instance, the server will provide various combinations of access links, with relevant parameter descriptions:
+## The access model
 
-- **Internal/External Access**: Whether the application and Kafka server are within the same business cluster.
-- **Authentication Mechanism**: Whether authentication is enabled for client identity verification. The authentication mechanisms support SCRAM-SHA-512 and TLS protocols (Note: the TLS authentication mechanism only supports being enabled over a TLS encrypted transmission link).
-- **Transport Encryption**: Ensures the security of data during transmission, using data encryption technology to prevent data from being intercepted or eavesdropped during network transmission. The transport encryption protocol is typically TLS.
+Four independent choices define how a client reaches a Kafka instance. They are orthogonal: any
+combination is valid, and a single instance can expose several listeners at once.
 
-| Access Method | Authentication Mechanism                | Transport Encryption | Applicable Scenarios                          |
-| --------------| --------------------------------------- | --------------------- | --------------------------------------------- |
-| Internal | Disabled                               | Disabled              | Testing scenario                               |
-| Internal | Disabled                               | Enabled               | Testing scenario                               |
-| Internal | Enabled SCRAM-SHA-512 (recommended)   | Disabled              | Access through the internal network, messages are transmitted without encryption, but authentication is required for sending and receiving messages.  |
-| Internal | Enabled SCRAM-SHA-512 or TLS (more secure) | Enabled          | Access through the internal network, messages are transmitted with encryption, and authentication is required for sending and receiving messages. (Higher security, performance may be affected) |
-| External | Disabled                               | Disabled              | Not recommended                                 |
-| External | Disabled                               | Enabled               | Testing scenario                               |
-| External | Enabled SCRAM-SHA-512                  | Disabled              | Access through the external network, messages are transmitted without encryption                       |
-| External | Enabled SCRAM-SHA-512 or TLS (recommended) | Enabled            | Access through the external network, messages are transmitted with encryption, and authentication is required for sending and receiving messages. (Higher security, performance may be affected) |
+| Dimension | Options | Where it is configured |
+| --- | --- | --- |
+| **Scope** | In-cluster / Out-of-cluster | Which listener you enable |
+| **Exposure** | `internal` (Service) / `nodeport` / `loadbalancer` | `listeners.external.type` |
+| **Transport encryption** | Off / TLS | `listeners.<name>.tls` |
+| **Authentication** | None / SCRAM-SHA-512 / mutual TLS | `listeners.<name>.authentication.type` |
 
-## Client Configuration Description
+An instance always exposes at most three listeners, each with a fixed name and port:
 
-When connecting, the client needs to choose the appropriate link and configure the corresponding parameters based on the following information:
+| Listener | Port | Exposure | Encryption | Purpose |
+| --- | --- | --- | --- | --- |
+| `plain` | 9092 | ClusterIP Service | Never | In-cluster access without transport encryption |
+| `tls` | 9093 | ClusterIP Service | Always | In-cluster access with transport encryption |
+| `external` | 9094 | NodePort or LoadBalancer | Optional | Access from outside the cluster |
 
-| Parameter     | Client                                    |
-| --------------| ----------------------------------------- |
-| Transport Encryption | If the client needs to use an encrypted path, it must use the corresponding port and configure the TLS protocol certificate. |
-| Authentication and Authorization | If authentication is enabled for the Kafka instance, the client needs to configure the corresponding user, password, or certificate for the protocol. |
-| Internal/External Connection | The application selects the required connection address based on its location. |
+<Directive type="warning" title="Configure listeners through RdsKafka only">
+The operator rebuilds the listener list of the underlying `Kafka` resource on every reconcile.
+Edits made directly to the `Kafka` resource are overwritten. Always change
+`RdsKafka.spec.kafka.listeners`.
+</Directive>
 
-We demonstrate several typical access links (Java client), where other combinations can be configured accordingly based on the appropriate link:
+<Directive type="warning" title="Always declare the listeners explicitly">
+If `spec.kafka.listeners` is omitted entirely, the instance falls back to a `plain` listener and a
+NodePort `external` listener, both without transport encryption and without authentication. Declare
+the listeners you want rather than relying on that default.
+</Directive>
 
-- Internal access, without authentication, non-encrypted transmission
-- Internal access, with authentication (TLS protocol), encrypted transmission
-- External access, with authentication (SCRAM-SHA-512 protocol), non-encrypted transmission
-- External access, with authentication (SCRAM-SHA-512 protocol), encrypted transmission
-- External access, with authentication (TLS protocol), encrypted transmission
+## Choosing an authentication mechanism
 
----
+| Mechanism | Value | Works over | Client needs |
+| --- | --- | --- | --- |
+| None | omit `authentication` | Any listener | Nothing |
+| SCRAM-SHA-512 | `scram-sha-512` | Any listener | Username and password |
+| Mutual TLS | `tls` | Encrypted listeners only | Client certificate and private key |
 
-### 1. Internal Access - Without Authentication, Non-encrypted Transmission
+<Directive type="note">
+Setting `authentication.type: tls` on the `external` listener forces `tls: true`, because mutual TLS
+authentication cannot run over an unencrypted connection.
+</Directive>
 
-At this point, the client and Kafka instance are located in the same business cluster. Since the Kafka server has not enabled authentication, the transmission process does not require encryption. The client only needs to obtain the internal route of the Kafka instance.
+Each listener carries its own mechanism, so one instance can offer SCRAM-SHA-512 in the cluster and
+mutual TLS outside it. A Kafka user, however, has a single `authentication.type` and can only use the
+listeners that offer it — a user created for mutual TLS has no password and cannot authenticate over
+a SCRAM-SHA-512 listener.
 
-You can copy the connection address for "Access within the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
+<Directive type="warning" title="Authentication and authorization go together">
+`spec.kafka.authorization.type: simple` matches access control list entries against the
+**authenticated principal**. A listener with no `authentication` therefore produces clients that
+connect successfully and are then denied everything, as `User:ANONYMOUS`. Do not combine
+authorization with an unauthenticated listener unless that is genuinely what you want.
+</Directive>
 
-The client connection code example is as follows:
+## In-cluster access
 
+Enable one or both internal listeners:
+
+```yaml
+spec:
+  kafka:
+    listeners:
+      plain:
+        authentication:
+          type: scram-sha-512
+      tls:
+        authentication:
+          type: tls
 ```
-package com.lanzhiwang.producer;
-import java.util.Properties;
 
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
+The resulting addresses are stable Kubernetes Service names:
 
-public class ExampleProducer {
-    public static void main(String[] args) {
+| Listener | Bootstrap address |
+| --- | --- |
+| `plain` | `<instance>-kafka-bootstrap.<namespace>.svc:9092` |
+| `tls` | `<instance>-kafka-bootstrap.<namespace>.svc:9093` |
 
-        Properties kafkaProps = new Properties();
-        kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9092");
-        kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-        kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+Certificates issued for in-cluster listeners always contain these names, so TLS hostname
+verification works without any extra configuration.
 
-        // ProducerRecord(String topic, K key, V value)
-        ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+## Out-of-cluster access with NodePort
 
-        try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-            // Ignore the returned value, no way to know the message was sent successfully or not.
-            producer.send(record);
-            // Thread.sleep(2000000); // Delay 2000 seconds
-        } catch (Exception e) {
-            // If the producer encountered errors before sending the message to Kafka.
-            e.printStackTrace();
-        }
-    }
-}
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: nodeport
+        tls: true
+        authentication:
+          type: scram-sha-512
 ```
 
-### 2. Internal Access - With Authentication (TLS Protocol), Encrypted Transmission
+This creates one NodePort Service for the bootstrap address plus one NodePort Service per broker:
 
-At this point, the client and Kafka instance are located within the same business cluster. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the internal route address of the Kafka instance, the user and password certificate for the TLS protocol, and the transmission certificate.
+```console
+$ kubectl -n <namespace> get svc
+NAME                           TYPE        CLUSTER-IP     PORT(S)
+dk1-kafka-external-bootstrap   NodePort    10.4.66.120    9094:31114/TCP
+dk1-broker-a4c8aa-0            NodePort    10.4.122.230   9094:32689/TCP
+dk1-broker-a4c8aa-1            NodePort    10.4.254.68    9094:31156/TCP
+```
 
-1. Internal route address of the Kafka instance
+A client connects to the **bootstrap** node port on any node, and the brokers answer with their
+**per-broker** node ports. Both sets of ports must be reachable from the client network.
 
-   You can copy the connection address for "Access within the Cluster - TLS Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
+The address a broker advertises is the internal IP address of the node its pod currently runs on,
+combined with that broker's own node port — for example `192.168.138.211:32689` for broker 0 and
+`192.168.136.224:31156` for broker 1. This is controlled by `preferredNodePortAddressType`, which
+the operator sets to `InternalIP` for newly created instances.
 
-2. TLS protocol transmission and password certificate
+<Directive type="warning" title="Clients outside the node network">
+Because brokers advertise node internal IP addresses, a client that cannot route to that network
+will bootstrap successfully and then fail to reach any broker. Use
+`overrides.brokers[].advertisedHost` to advertise a routable name instead — see
+[Making TLS hostname verification work](#making-tls-hostname-verification-work).
+</Directive>
 
-   Use the kubectl command to generate user and password certificates, and copy the relevant certificates to the appropriate paths on the client. The specific commands are:
+### Pinning the node ports
 
-   - Generate CA certificate:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-     ```
+Node ports are allocated randomly unless you pin them. Pin them when the client network has
+firewall rules, or when clients hard-code addresses:
 
-   - Generate CA certificate password:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-     ```
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: nodeport
+        tls: true
+        authentication:
+          type: scram-sha-512
+        overrides:
+          bootstrap:
+            nodePort: 31114
+          brokers:
+            - broker: 0
+              nodePort: 32000
+            - broker: 1
+              nodePort: 32001
+```
 
-3. TLS protocol user and password certificate
+`broker` is the node ID of a broker node, not an index into the pod list. Broker node IDs start at
+`0`; controller node IDs continue after the last broker. With two brokers and one controller the
+brokers are `0` and `1` and the controller is `2`.
 
-   Use the kubectl command to generate the transmission and password certificate and copy the relevant certificates to the appropriate paths on the client. The specific commands are:
+<Directive type="note" title="Scaling changes the required overrides">
+Adding brokers adds new node IDs. Every per-broker override list — `nodePort`, `advertisedHost`,
+`advertisedPort` — must be extended to cover them, otherwise the new brokers fall back to the
+default behaviour.
+</Directive>
 
-   - Generate user certificate:
-     ```
-     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-     ```
+## Out-of-cluster access with LoadBalancer
 
-   - Generate user certificate password:
-     ```
-     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-     ```
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: loadbalancer
+        tls: true
+        authentication:
+          type: scram-sha-512
+```
 
-4. The client connection code example is as follows:
+This creates one LoadBalancer Service for the bootstrap address and one per broker, all on port
+9094. Each broker advertises the external address of its own LoadBalancer Service.
 
-    ```
-    package com.lanzhiwang.producer;
-    import java.util.Properties;
+Compared with NodePort:
 
-    import org.apache.kafka.clients.producer.KafkaProducer;
-    import org.apache.kafka.clients.producer.ProducerRecord;
+| | NodePort | LoadBalancer |
+| --- | --- | --- |
+| Address stability | Changes when a broker pod moves to another node | Stable for the life of the Service |
+| Ports | One node port per broker, plus one for bootstrap | Always 9094 |
+| Cluster requirement | None | A LoadBalancer implementation must be installed |
+| TLS hostname verification | Needs configuration (see below) | Works without extra configuration |
 
-    public class ExampleProducer {
-        public static void main(String[] args) {
+<Directive type="warning">
+If the cluster has no LoadBalancer implementation, the Services stay in `Pending` with no external
+address and the instance never finishes reconciling. Confirm with the platform administrator before
+choosing this type.
+</Directive>
 
-            Properties kafkaProps = new Properties();
-            kafkaProps.put("bootstrap.servers", "test-kafka-bootstrap:9093");
-            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+## Finding the connection address
 
-            // Configure TLS/SSL properties
-            kafkaProps.put("security.protocol", "SSL");
-            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-            kafkaProps.put("ssl.truststore.password", "************");
-            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-            kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-            kafkaProps.put("ssl.keystore.password", "************");
-            // Internal access does not require configuration, configuration for enabling TLS on nodeport
-            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-            // ProducerRecord(String topic, K key, V value)
-            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+<Tabs>
+  <Tab label="Web Console">
+    1. Click **Kafka** in the left navigation bar.
+    2. Select the namespace and click the instance name.
+    3. Open the **Access Method** tab and copy the address for the listener you need.
+  </Tab>
+  <Tab label="kubectl">
+    The `Kafka` resource publishes the resolved address of every listener, including the node
+    addresses of a NodePort listener:
 
-            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-                // Ignore the returned value, no way to know the message was sent successfully or not.
-                producer.send(record);
-                // Thread.sleep(2000000); // Delay 2000 seconds
-            } catch (Exception e) {
-                // If the producer encountered errors before sending the message to Kafka.
-                e.printStackTrace();
-            }
-        }
-    }
-    ```
-
-### 3. External Access - With Authentication (SCRAM-SHA-512 Protocol), Non-encrypted Transmission
-
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process does not require encryption. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol.
-
-1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
-
-2. You can use an existing user or create a new user under the 【Kafka Instance - User Management】 tab.
-
-3. The client connection code example is as follows:
-
-    ```
-    package com.lanzhiwang.producer;
-    import java.util.Properties;
-
-    import org.apache.kafka.clients.producer.KafkaProducer;
-    import org.apache.kafka.clients.producer.ProducerRecord;
-
-    public class ExampleProducer {
-        public static void main(String[] args) {
-
-            Properties kafkaProps = new Properties();
-            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-            // Configure SCRAM-SHA-512 properties
-            kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
-            kafkaProps.put("security.protocol", "SASL_PLAINTEXT");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
-            // ProducerRecord(String topic, K key, V value)
-            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
-
-            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-                // Ignore the returned value, no way to know the message was sent successfully or not.
-                producer.send(record);
-                // Thread.sleep(2000000); // Delay 2000 seconds
-            } catch (Exception e) {
-                // If the producer encountered errors before sending the message to Kafka.
-                e.printStackTrace();
-            }
-        }
-    }
+    ```console
+    $ kubectl -n <namespace> get kafka <instance> \
+        -o jsonpath='{range .status.listeners[*]}{.name}{"\t"}{.bootstrapServers}{"\n"}{end}'
+    tls        dk1-kafka-bootstrap.kafka-doc-verify.svc:9093
+    external   192.168.136.224:31114,192.168.138.211:31114
     ```
 
-### 4. External Access - With Authentication (SCRAM-SHA-512 Protocol), Encrypted Transmission
+    The same entries also carry the server certificate chain in PEM format, which is the most
+    convenient source of a trust anchor for non-Java clients:
 
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, username and password under the SCRAM-SHA-512 protocol, as well as the TLS protocol transmission certificate.
-
-1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
-
-2. You can use an existing user or create a new user under the 【Kafka Instance - User Management】 tab.
-
-3. TLS protocol transmission and password certificate
-
-   Use the kubectl command to generate user and password certificates, and copy the relevant certificates to the appropriate paths on the client. The specific commands are:
-
-   - Generate CA certificate:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-     ```
-
-   - Generate CA certificate password:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-     ```
-
-4. The client connection code example is as follows:
-
+    ```bash
+    kubectl -n <namespace> get kafka <instance> \
+      -o jsonpath='{.status.listeners[?(@.name=="external")].certificates[0]}' > ca.crt
     ```
-    package com.lanzhiwang.producer;
-    import java.util.Properties;
+  </Tab>
+  <Tab label="From the Services">
+    Read the node port from the bootstrap Service and combine it with any node address:
 
-    import org.apache.kafka.clients.producer.KafkaProducer;
-    import org.apache.kafka.clients.producer.ProducerRecord;
-
-    public class ExampleProducer {
-        public static void main(String[] args) {
-
-            Properties kafkaProps = new Properties();
-            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-
-            kafkaProps.put("security.protocol", "SASL_SSL");
-            kafkaProps.put("sasl.mechanism", "SCRAM-SHA-512");
-            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-            kafkaProps.put("ssl.truststore.password", "************");
-            kafkaProps.put("sasl.jaas.config", "org.apache.kafka.common.security.scram.ScramLoginModule required username=\"*************\" password=\"*************\";");
-            // Internal access does not require configuration, configuration for enabling TLS on nodeport
-            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-            // ProducerRecord(String topic, K key, V value)
-            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
-
-            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-                // Ignore the returned value, no way to know the message was sent successfully or not.
-                producer.send(record);
-                // Thread.sleep(2000000); // Delay 2000 seconds
-            } catch (Exception e) {
-                // If the producer encountered errors before sending the message to Kafka.
-                e.printStackTrace();
-            }
-        }
-    }
+    ```bash
+    kubectl -n <namespace> get svc <instance>-kafka-external-bootstrap \
+      -o jsonpath='{.spec.ports[0].nodePort}'
+    kubectl get nodes -o wide
     ```
+  </Tab>
+</Tabs>
 
-### External Access - With Authentication (TLS Protocol), Encrypted Transmission
+## Making TLS hostname verification work
 
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol, and the TLS protocol transmission certificate.
+By default a Kafka client verifies that the address it dialled appears in the broker certificate.
+For an `external` listener of type `nodeport` this fails out of the box:
 
-1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
+```text
+javax.net.ssl.SSLHandshakeException: (certificate_unknown)
+Caused by: java.security.cert.CertificateException:
+  No subject alternative names matching IP address 192.168.136.224 found
+```
 
-2. TLS protocol transmission and password certificate
+### Why it fails
 
-   Use the kubectl command to generate user and password certificates, and copy the relevant certificates to the appropriate paths on the client. The specific commands are:
+Broker certificates are issued by the operator before the broker pods are scheduled, so at signing
+time there is no way to know which node a broker will land on. The node address is discovered by an
+init container when the pod starts and is substituted into the advertised listener configuration at
+runtime. The certificate, already signed, never learns it.
 
-   - Generate CA certificate:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-     ```
+A LoadBalancer listener does not have this problem: its addresses exist as Service status before the
+certificates are issued, so they are included automatically.
 
-   - Generate CA certificate password:
-     ```
-     $ kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-     ```
+### Choosing a fix
 
-3. TLS protocol user and password certificate
+| Option | Certificate contains | Client address | Use when |
+| --- | --- | --- | --- |
+| [Advertise your own hostnames](#option-1-advertise-your-own-hostnames) | Your domain names | Your domain names | You control DNS — **recommended** |
+| [List the node addresses](#option-2-list-the-node-addresses) | Node IP addresses | Node IP address and port | Fixed, small set of nodes |
+| [Synchronize node addresses automatically](#option-3-synchronize-node-addresses-automatically) | Node IP addresses | Node IP address and port | Nodes change and restarts are acceptable |
+| [Disable verification on the client](#option-4-disable-verification-on-the-client) | Unchanged | Any | Nothing else is possible |
 
-   Use the kubectl command to generate the transmission and password certificate and copy the relevant certificates to the appropriate paths on the client. The specific commands are:
+### Option 1: Advertise your own hostnames
 
-   - Generate user certificate:
-     ```
-     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-     ```
+`advertisedHost` does two things at once: the name is added to that broker's certificate, and it
+replaces the node address the broker advertises to clients.
 
-   - Generate user certificate password:
-     ```
-     $ kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-     ```
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: nodeport
+        tls: true
+        authentication:
+          type: scram-sha-512
+        overrides:
+          bootstrap:
+            nodePort: 31114
+            alternativeNames:
+              - kafka-bootstrap.example.com
+          brokers:
+            - broker: 0
+              nodePort: 32000
+              advertisedHost: kafka-0.example.com
+            - broker: 1
+              nodePort: 32001
+              advertisedHost: kafka-1.example.com
+```
 
-4. The client connection code example is as follows:
+Clients then use `kafka-bootstrap.example.com:31114` as the bootstrap address.
 
-    ```
-    package com.lanzhiwang.producer;
-    import java.util.Properties;
+DNS requirements:
 
-    import org.apache.kafka.clients.producer.KafkaProducer;
-    import org.apache.kafka.clients.producer.ProducerRecord;
+- With the default `externalTrafficPolicy`, every one of these names may resolve to the **same**
+  address — any node IP address, or a virtual IP address in front of the nodes. The per-broker node
+  port is what routes a connection to the right broker.
+- The bootstrap name must be declared separately under `bootstrap.alternativeNames`; `advertisedHost`
+  only covers the per-broker addresses.
+- If a fixed-port load balancer sits in front of the node ports, set `advertisedPort` as well so
+  brokers advertise the load balancer port instead of the node port.
 
-    public class ExampleProducer {
-        public static void main(String[] args) {
+### Option 2: List the node addresses
 
-            Properties kafkaProps = new Properties();
-            kafkaProps.put("bootstrap.servers", "192.168.176.13:31786,192.168.176.23:30535,192.168.176.27:30219");
-            kafkaProps.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
-            kafkaProps.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+`alternativeNames` adds names to **every** broker certificate without changing what the brokers
+advertise. Clients keep connecting to node IP addresses and ports.
 
-            // Configure TLS/SSL properties
-            kafkaProps.put("security.protocol", "SSL");
-            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-            kafkaProps.put("ssl.truststore.location", "/Users/temp/certs/ca.p12");
-            // kubectl -n <namespace> get secret <name>-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-            kafkaProps.put("ssl.truststore.password", "************");
-            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-            kafkaProps.put("ssl.keystore.location", "/Users/temp/certs/user.p12");
-            // kubectl -n <namespace> get secret <Kafka User Name> -o jsonpath='{.data.user\.password}' | base64 -d
-            kafkaProps.put("ssl.keystore.password", "************");
-            // Internal access does not require configuration, configuration for enabling TLS on nodeport
-            kafkaProps.put("ssl.endpoint.identification.algorithm", "");
-            // ProducerRecord(String topic, K key, V value)
-            ProducerRecord<String, String> record = new ProducerRecord<>("my-cluster-topic", "Precision Products", "China");
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: nodeport
+        tls: true
+        authentication:
+          type: scram-sha-512
+        overrides:
+          bootstrap:
+            alternativeNames:
+              - 192.168.136.224
+              - 192.168.138.211
+```
 
-            try (KafkaProducer<String, String> producer = new KafkaProducer<>(kafkaProps)) {
-                // Ignore the returned value, no way to know the message was sent successfully or not.
-                producer.send(record);
-                // Thread.sleep(2000000); // Delay 2000 seconds
-            } catch (Exception e) {
-                // If the producer encountered errors before sending the message to Kafka.
-                e.printStackTrace();
-            }
-        }
-    }
-    ```
+IP addresses are added as IP entries and hostnames as DNS entries, so either form works. List every
+node a broker pod may be scheduled onto, not only the ones in use today — if a pod moves to a node
+that is not in the list, clients start failing verification again.
+
+This option suits bare-metal clusters with a small, fixed node pool.
+
+### Option 3: Synchronize node addresses automatically
+
+`autoConfigAlternativeNames` makes the operator keep `alternativeNames` in step with the addresses
+of the nodes currently running brokers.
+
+```yaml
+spec:
+  kafka:
+    listeners:
+      external:
+        type: nodeport
+        tls: true
+        autoConfigAlternativeNames: true
+```
+
+| Value | Behaviour |
+| --- | --- |
+| unset | Enabled for `loadbalancer`, disabled for `nodeport` |
+| `true` | Always enabled |
+| `false` | Always disabled |
+
+<Directive type="warning" title="Why this is off by default for NodePort">
+Every change to the address set re-issues the broker certificates and rolls the brokers. When a
+broker pod moves to a different node, the node address changes, which triggers another rolling
+restart. On a cluster where pods are rescheduled often this can restart brokers repeatedly. Prefer
+Option 1 or Option 2 unless the node set is stable.
+</Directive>
+
+<Directive type="note">
+Setting `overrides.bootstrap.alternativeNames` by hand disables the automatic synchronization; the
+manual list wins.
+</Directive>
+
+<Directive type="warning" title="Set this when creating the instance">
+Synchronization only runs while the instance is in the `Active` phase. In this release, turning it
+on for an already running instance can leave the instance in the `Updating` phase with the
+synchronization never taking effect. Set it at creation time, or use Option 1 or Option 2 instead.
+</Directive>
+
+### Option 4: Disable verification on the client
+
+If none of the above is possible, turn off hostname verification in the client:
+
+```properties
+ssl.endpoint.identification.algorithm=
+```
+
+The connection is still encrypted and the broker certificate is still checked against the trusted
+certificate authority, but the client no longer checks that it reached the host it asked for. This
+removes protection against an attacker who can redirect traffic to another host holding a
+certificate from the same authority. Treat it as a fallback, not as the standard configuration.
+
+## Verifying the certificate
+
+Each broker stores its server certificate in a Secret named after its pod. Check what a client will
+see:
+
+```console
+$ kubectl -n <namespace> get secret <pod-name> \
+    -o jsonpath='{.data.<pod-name>\.crt}' | base64 -d | \
+    openssl x509 -noout -text | grep -A2 "Subject Alternative Name"
+
+            X509v3 Subject Alternative Name:
+                DNS:dk1-kafka-bootstrap, DNS:dk1-kafka-brokers, ...,
+                IP Address:192.168.136.224, IP Address:192.168.138.211,
+                DNS:kafka-bootstrap.example.com, DNS:kafka-0.example.com
+```
+
+Reading the result:
+
+- Names from `bootstrap.alternativeNames` appear on **every** broker certificate.
+- A name from `brokers[].advertisedHost` appears **only** on that broker's certificate.
+- If the address your client uses is absent, hostname verification will fail for that address.
+
+## Changes that restart the brokers
+
+Any change to the set of names in the broker certificates re-issues those certificates and triggers
+a rolling restart of the brokers. That includes adding or removing `alternativeNames`, adding or
+changing an `advertisedHost`, enabling `autoConfigAlternativeNames`, and — when automatic
+synchronization is on — a broker pod moving to a different node. Plan these changes into a
+maintenance window.
+
+<Directive type="note" title="Node ports cannot be swapped in one step">
+When updating an instance, two listeners cannot exchange node ports directly. Move one to an unused
+port first, then assign the freed port.
+</Directive>
