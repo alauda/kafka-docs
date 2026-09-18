@@ -1,0 +1,79 @@
+---
+weight: 50
+---
+
+# Producer Send Timeout or High Latency
+
+Producer timeout or unstable send latency usually means the client is waiting too long for broker acknowledgment, leader availability, or network completion.
+
+This document describes the typical causes of producer timeout and latency spikes, how to distinguish broker-side problems from client-side tuning issues, and which parameters matter most during analysis.
+
+## Impact
+
+Producer latency problems can affect the service in several ways:
+
+- **Higher end-to-end message delay**: Even if messages are eventually written, upstream applications experience slower confirmation.
+- **Retry amplification**: When timeouts trigger retries, the cluster can receive additional write pressure while already unhealthy.
+- **Duplicate write risk**: Some retry patterns can create duplicate records if the producer does not use idempotent behavior.
+- **Downstream instability**: Consumers may see bursty traffic after producer latency recovers and backlogged sends are flushed.
+
+## Common Causes
+
+- Broker load is high and request queues grow
+- The partition leader is unavailable or changes frequently
+- `acks=all` waits for replicas while ISR is unstable
+- Network latency or packet loss increases round-trip time
+- Message batches are too large
+- Producer retry settings mask an underlying broker problem
+
+## What to Check
+
+1. Review producer logs for timeout, retry, metadata refresh, and connection reset messages.
+2. Check broker CPU, disk I/O, network, and request queue metrics.
+3. Verify whether the affected topic has under-replicated partitions or unstable ISR.
+4. Check partition leader movement during the same time period.
+5. Review producer settings such as `acks`, `retries`, `delivery.timeout.ms`, `request.timeout.ms`, `linger.ms`, and `batch.size`.
+6. Confirm whether the problem affects all topics or only a subset of partitions.
+
+## Important Parameters
+
+| Parameter | Description |
+| :--- | :--- |
+| `acks` | Controls how many broker acknowledgments the producer waits for before considering a send successful. |
+| `retries` | Number of retries after transient send failures. |
+| `delivery.timeout.ms` | Upper limit for the total time the producer waits for send success, including retries. |
+| `request.timeout.ms` | Maximum time the client waits for a broker response to a request. |
+| `linger.ms` | Time the producer waits to accumulate records into a batch before sending. |
+| `batch.size` | Maximum batch size for records sent to a partition. |
+
+These parameters interact with broker health. For example, raising `delivery.timeout.ms` can reduce false timeouts during short disruptions, but it will not solve replica instability or overloaded brokers.
+
+## Recommendations
+
+### Fix Cluster Instability First
+
+Fix broker or replica instability before relaxing producer timeout settings. If leaders move often or ISR is unstable, producer tuning alone will not solve the issue.
+
+### Understand the Cost of `acks=all`
+
+`acks=all` provides stronger durability, but it also means the producer waits for the replication path to be healthy. If follower replicas are slow or missing, latency increases quickly.
+
+### Tune Timeouts Carefully
+
+Increase `delivery.timeout.ms` or `request.timeout.ms` only if broker behavior is otherwise healthy and the workload legitimately needs more time. Do not use very large timeouts to hide cluster problems.
+
+### Tune Batching for the Workload
+
+Batching can improve throughput, but larger batches can increase per-request latency and make timeout behavior harder to diagnose. Tune `linger.ms` and `batch.size` according to message size and latency goals.
+
+### Check Leader Hotspots
+
+If only a few leaders are overloaded, spread traffic across more partitions or rebalance leadership if the platform supports it.
+
+## Best Practices
+
+1. Monitor producer latency together with ISR health and request queue metrics.
+2. Keep retry settings, timeout settings, and business retry logic aligned.
+3. Separate normal batching delay from real timeout behavior when analyzing latency.
+4. Treat producer latency spikes and under-replicated partitions as related symptoms until proven otherwise.
+5. Use idempotent producer behavior when duplicate sends would be costly.

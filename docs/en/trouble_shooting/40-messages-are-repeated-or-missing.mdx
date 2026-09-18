@@ -1,0 +1,87 @@
+---
+weight: 40
+---
+
+# Messages Are Repeated or Missing
+
+Duplicate consumption and apparent message loss are usually caused by consumer offset handling, retry behavior, retention policy, or incorrect expectations about Kafka delivery guarantees.
+
+This document explains why duplicate processing or apparent data loss happens, how to separate Kafka behavior from application behavior, and what to check before assuming that Kafka actually lost data.
+
+## Understand the Symptom First
+
+In practice, “repeated messages” and “missing messages” usually mean one of the following:
+
+- The same business record was processed more than once
+- The application expected a message but consumed from the wrong offset or wrong consumer group
+- A message existed in Kafka before but expired because of topic retention
+- The record was consumed, but later dropped or overwritten by application logic
+
+Kafka does not guarantee exactly-once processing by default for general consumer applications. In most deployments, the realistic baseline is **at-least-once delivery**, which means duplicates must be expected and handled correctly.
+
+## Common Causes
+
+- Offsets are committed after processing fails or before processing completes
+- Consumer rebalance occurs before offsets are committed
+- Producers retry after timeout and create duplicate records
+- Consumers read from the wrong group or wrong offset position
+- Topic retention deletes older records before they are consumed
+- Application logic filters or drops messages after consumption
+
+## What to Check
+
+1. Confirm whether the issue is true message loss or duplicate processing inside the application. Many incidents are caused by business logic or state updates rather than Kafka storage loss.
+2. Review consumer commit mode and the exact point where offsets are committed. If offsets are committed too early, failures after commit can look like message loss.
+3. Check whether rebalance, restart, or crash happened near the incident time. These events often explain duplicate processing.
+4. Verify producer retry settings and application idempotency behavior. A producer timeout followed by retry can create duplicate records.
+5. Review topic retention configuration and broker disk pressure events. Messages that stay unconsumed for too long may expire.
+6. Confirm the consumer group name, `auto.offset.reset`, and assigned partitions. Reading with the wrong group or from the wrong offset often looks like missing data.
+
+## Typical Duplicate Consumption Scenarios
+
+Duplicate processing commonly happens in the following cases:
+
+- A consumer processes records successfully but crashes before committing offsets
+- Rebalance reassigns partitions before the previous consumer commits
+- The producer retries after a timeout and the business system cannot distinguish duplicate sends
+- The application itself retries processing without an idempotent guard
+
+## Typical Missing Message Scenarios
+
+Apparent message loss commonly happens in the following cases:
+
+- The consumer starts from `latest` and skips earlier records
+- The wrong consumer group is used during troubleshooting
+- Topic retention deletes old records before the consumer catches up
+- The record is consumed but filtered, transformed, or discarded by application code
+- Offsets were advanced manually or committed before business processing completed
+
+## Recommendations
+
+### Make Consumer Processing Idempotent
+
+Design consumers for at-least-once delivery and make downstream operations idempotent. This is the most practical protection against rebalance, retry, and crash scenarios.
+
+### Commit Offsets at the Right Time
+
+Commit offsets only after processing has completed successfully. Committing too early can hide failed processing and create apparent message loss.
+
+### Use Producer Safety Features Where Appropriate
+
+If duplicate sends are a concern, use producer idempotence or transactional behavior where the application architecture supports it.
+
+### Keep Enough Retention Headroom
+
+Retention must be longer than the maximum realistic delay for consumer recovery. If consumers may stay behind for hours or days, retention must be sized accordingly.
+
+### Record Business Identifiers
+
+Store business-level identifiers in logs or downstream systems so that duplicate processing can be detected and investigated quickly.
+
+## Best Practices
+
+1. Treat Kafka as at-least-once by default unless your application explicitly guarantees otherwise.
+2. Do not rely on offset commit alone as proof that business processing is complete.
+3. Monitor duplicate processing rate and retention headroom.
+4. Separate “record existed in Kafka” from “record was processed by the application” during incident analysis.
+5. Verify consumer group, offset position, and retention before declaring data loss.

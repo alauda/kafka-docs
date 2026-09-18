@@ -1,0 +1,94 @@
+---
+weight: 30
+---
+
+# Consumer Lag Is Increasing
+
+Consumer lag means the consumer group is processing records more slowly than producers are writing them. Growing lag is often the earliest sign of a throughput or stability problem.
+
+This document describes the impact of increasing lag, common causes, and practical ways to identify whether the bottleneck is in Kafka, the consumer application, or a downstream dependency.
+
+## Impact of Consumer Lag
+
+If lag keeps growing, the service can be affected in several ways:
+
+- **Delayed business processing**: Messages remain in Kafka longer before being consumed, which increases end-to-end latency for business events.
+- **Recovery becomes slower**: Once lag becomes large, even a healthy consumer group may need a long time to catch up.
+- **Retention risk increases**: If consumer lag grows beyond the topic retention window, old records may expire before the consumer reads them.
+- **Cluster pressure can spread**: Lag often appears together with rebalance, retry, or restart loops, which makes the whole consumer group less stable.
+
+## Common Causes
+
+- Consumer processing is slower than producer throughput
+- Rebalance happens frequently and interrupts consumption
+- A small number of partitions receive most of the traffic
+- Downstream systems such as databases or APIs become slow
+- Consumer instances restart repeatedly
+- Poll, commit, or fetch parameters are not tuned for the workload
+
+A useful way to classify lag problems is:
+
+- **Capacity problem**: Producers send more traffic than the consumer group can process.
+- **Skew problem**: Only some partitions are slow, usually because traffic is uneven.
+- **Stability problem**: Consumers spend too much time restarting, rebalancing, or waiting on dependencies.
+
+## What to Check
+
+1. Compare producer throughput and consumer throughput in the same time window. If producers consistently write more than consumers process, lag will continue to grow.
+2. Check whether lag grows on all partitions or only on a subset of partitions. If only a few partitions are slow, the main issue is usually hot partition skew rather than overall capacity.
+3. Review consumer logs for rebalance, timeout, commit failure, or downstream call timeout messages.
+4. Check pod restart count, node rescheduling events, and deployment rollout history.
+5. Verify whether downstream dependency latency increased, for example database write time or remote API response time.
+6. Review consumer settings such as `max.poll.records`, `fetch.max.bytes`, `max.partition.fetch.bytes`, `max.poll.interval.ms`, and commit mode.
+
+## Important Parameters
+
+The following parameters often affect lag behavior:
+
+| Parameter | Description |
+| :--- | :--- |
+| `max.poll.records` | Limits how many records are returned in one poll. If this is too high, each batch may take too long to process. |
+| `max.poll.interval.ms` | Maximum allowed time between two `poll()` calls. If exceeded, the consumer leaves the group and rebalance can make lag worse. |
+| `fetch.max.bytes` | Total fetch size limit for one request. If too low, the consumer may fetch inefficiently. |
+| `max.partition.fetch.bytes` | Maximum data fetched per partition. If too low, hot partitions may drain slowly. |
+| Commit mode | Auto commit and manual commit have different latency and failure tradeoffs. |
+
+## How to Reduce Lag
+
+### Distinguish Capacity from Instability
+
+Do not assume that lag automatically means the consumer group needs more replicas.
+
+- If all partitions are slow and consumers are stable, the problem is usually insufficient processing capacity.
+- If lag spikes together with rebalance or restart events, fix stability first.
+- If only a few partitions are slow, investigate message key distribution and partition skew.
+
+### Improve Consumer Processing Efficiency
+
+Reduce record processing time and keep the polling loop responsive:
+
+- Move expensive business logic out of the main polling path
+- Reduce per-message blocking operations
+- Use asynchronous processing when appropriate
+- Tune batch size carefully so that processing stays within the poll interval budget
+
+### Scale Only When Partitions Allow It
+
+Increase consumer parallelism only when the topic has enough partitions. Adding more consumers than partitions does not improve throughput and can add coordination overhead.
+
+### Fix Downstream Bottlenecks
+
+If Kafka consumption is blocked by a database, HTTP service, or other external dependency, scaling consumers alone usually does not solve the problem. Identify the slow dependency and fix that bottleneck directly.
+
+### Reduce Rebalance and Restart Loops
+
+Frequent rebalance makes lag recovery slower. If lag increases together with consumer churn, first stabilize the consumer group before tuning throughput.
+
+## Best Practices
+
+1. Monitor lag together with rebalance count, restart count, and throughput.
+2. Keep partition count aligned with expected consumer concurrency.
+3. Test consumer performance with realistic downstream latency.
+4. Investigate hot partitions before scaling the whole group.
+5. Keep processing time short enough that consumers can continue polling normally.
+6. Treat long-running lag as either a capacity problem, a skew problem, or a stability problem and diagnose it accordingly.
