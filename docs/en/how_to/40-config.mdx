@@ -13,7 +13,7 @@ For the **server side** — enabling listeners and finding the bootstrap address
 Throughout this document, `<instance>` is the name of the Kafka instance, `<namespace>` its
 namespace, and `<user>` the name of a Kafka user.
 
-## What a client needs
+## What a client needs \{#what-a-client-needs}
 
 Every client configuration is built from two independent decisions: **how the connection is
 protected** and **how the client proves who it is**. Together they determine the value of
@@ -359,7 +359,7 @@ The user private key is issued in PKCS#8 form (`-----BEGIN PRIVATE KEY-----`), w
 directly. No `openssl pkcs8` conversion step is needed.
 </Directive>
 
-## Verifying the configuration
+## Verifying the configuration \{#verifying-the-configuration}
 
 Test the configuration with the console tools before wiring it into an application. This separates
 connectivity and credential problems from application problems.
