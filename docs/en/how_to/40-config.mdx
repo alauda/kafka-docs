@@ -1,118 +1,803 @@
 ---
 weight: 40
-sourceSHA: d50f1af4dae9e3127d3a036d3427c7ca259fe6d7cc95109db2403dea8bd8ba9f
 ---
 
-# Client File Configuration
+# Client Configuration Reference
 
-To ensure secure communication, please complete the configuration related to encrypted transmission on the Kafka client.
+This document covers the **client side** of connecting to a Kafka instance: which material to
+extract from the cluster, what each file is for, and which properties to set.
 
+For the **server side** — enabling listeners and finding the bootstrap address — see
+[Configuring Access and Finding Connection Addresses](./20-connect.mdx).
 
-<Directive type="info" title="Notes">
-The following operations should be performed on the **control node** within the cluster.
+Throughout this document, `<instance>` is the name of the Kafka instance, `<namespace>` its
+namespace, and `<user>` the name of a Kafka user.
+
+## What a client needs
+
+Every client configuration is built from two independent decisions: **how the connection is
+protected** and **how the client proves who it is**. Together they determine the value of
+`security.protocol` and which files you have to extract.
+
+Index this table by the listener configuration you actually have. Every row has been verified against
+a Kafka 4.2 instance.
+
+| Listener `tls` | Listener `authentication.type` | `security.protocol` | Trust material | Client identity |
+| --- | --- | --- | --- | --- |
+| `false` | omitted | `PLAINTEXT` | — | — |
+| `false` | `scram-sha-512` | `SASL_PLAINTEXT` | — | username and password |
+| `true` | omitted | `SSL` | required | — |
+| `true` | `scram-sha-512` | `SASL_SSL` | required | username and password |
+| `true` | `tls` | `SSL` | required | keystore (certificate and private key) |
+
+`authentication.type: tls` with `tls: false` does not exist — the operator forces `tls: true`.
+
+- **Trust material** proves to the client that the broker is genuine. It comes from the instance's
+  cluster certificate authority.
+- **Client identity material** proves to the broker who the client is. It comes from the Kafka user.
+
+The same five rows apply to the internal `plain` (port 9092) and `tls` (port 9093) listeners; only
+the address and the reachability differ.
+
+<Directive type="warning" title="A listener without authentication is not usable when authorization is on">
+If the instance sets `spec.kafka.authorization.type: simple` and a listener has no `authentication`,
+clients connect successfully and are then denied everything, because they have no identity to match
+access control list entries against. `kafka-topics --list` returns an empty list and any other
+operation fails with:
+
+```text
+org.apache.kafka.common.errors.TopicAuthorizationException: Not authorized to access topics: [...]
+```
+
+The broker log names the principal:
+
+```text
+Principal = User:ANONYMOUS is Denied operation = DESCRIBE ... based on rule DefaultDeny
+```
+
+Either give the listener an authentication mechanism, or do not enable authorization.
 </Directive>
 
-## Required File Preview
+<Directive type="info" title="One set of files per instance">
+Trust material is specific to a Kafka instance, because each instance has its own certificate
+authority. Clients talking to several instances need one set of files per instance, kept in separate
+paths.
+</Directive>
 
-Prepare the files according to the authentication type of the Kafka instance. Each file corresponds one-to-one with the Kafka instance. If there are multiple instances, separate configurations for each file are required, and the related files can be placed in different paths. For scenarios involving access within the cluster, the client path is exemplified as `/home/kafka`.
+## Understanding the certificates
 
-| Encryption Method       | Authentication Method         | Required Files                                                                |
-| ---------------------- | ---------------------------- | --------------------------------------------------------------------------- |
-| Intra-cluster: TLS<br />External: TLS | SCRAM-SHA-512 or none               | CA certificate: `ca.p12`<br />Client configuration file: `client-ssl.properties`                      |
-| Intra-cluster: TLS<br />External: TLS | TLS                           | CA certificate: `ca.p12`<br />User certificate: `user.p12`<br />Client configuration file: `client-ssl.properties` |
+An instance has **two** certificate authorities. They are not interchangeable.
 
-## I. Configure CA Certificate
+| Secret | Role | Used by the client? |
+| --- | --- | --- |
+| `<instance>-cluster-ca-cert` | Signs the **broker** certificates | **Yes** — this is the trust material |
+| `<instance>-clients-ca-cert` | Signs the **user** certificates | No — the brokers use it to verify clients |
 
-1. Generate the CA certificate.
+Picking the wrong one is a common mistake: a client that trusts the clients certificate authority
+will reject every broker it connects to.
 
-   ```
-   $ kubectl -n {Kafka instance namespace} get secret {Kafka instance name}-cluster-ca-cert -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
-   ```
-2. Generate the password for the CA certificate. Please record this password.
+### PEM or PKCS12
 
-   ```
-   $ kubectl -n {Kafka instance namespace} get secret {Kafka instance name}-cluster-ca-cert -o jsonpath='{.data.ca\.password}' | base64 -d
-   ```
+Both authorities publish their certificate in two formats, and the Kafka user Secret does the same
+for the client identity.
 
-## II. User Certificate
+| Format | Key in the Secret | Needs a password |
+| --- | --- | --- |
+| PEM | `ca.crt`, `user.crt`, `user.key` | No |
+| PKCS12 | `ca.p12`, `user.p12` | Yes — `ca.password`, `user.password` |
 
-1. Generate the user certificate.
+**Both formats work with every client in this document**, Java included. librdkafka-based clients
+(C/C++, Python, Go, .NET) and `openssl` accept PEM only, so PEM is the format to reach for when a
+deployment mixes languages. PKCS12 remains the conventional choice for a Java-only estate.
 
-   ```
-   $ kubectl -n {Kafka instance namespace} get secret {Kafka user name} -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
-   ```
+The examples below give both, so pick one per client and stay with it — a truststore in one format
+and a keystore in the other is legal but needlessly confusing.
 
-2. Generate the password for the user certificate. Please record this password.
+### What is in each Secret
 
-   ```
-   $ kubectl -n {Kafka instance namespace} get secret {Kafka user name} -o jsonpath='{.data.user\.password}' | base64 -d
-   ```
+| Secret | Keys | Meaning | Needed with PEM |
+| --- | --- | --- | --- |
+| `<instance>-cluster-ca-cert` | `ca.crt` | Cluster authority certificate, PEM | Yes |
+| | `ca.p12` | The same certificate as a PKCS12 truststore | No |
+| | `ca.password` | Unlocks `ca.p12` | No |
+| `<user>` (mutual TLS) | `user.crt`, `user.key` | Client certificate and private key, PEM | Yes |
+| | `user.p12` | The same pair as a PKCS12 keystore | No |
+| | `user.password` | Unlocks `user.p12` | No |
+| | `ca.crt` | Clients authority certificate — not used by the client | — |
+| `<user>` (SCRAM-SHA-512) | `password` | The user's login credential | **Yes** |
+| | `sasl.jaas.config` | A ready-to-paste `sasl.jaas.config` value | **Yes** |
 
-## III. Configure Client Configuration Files
+The Secret holding a user's credentials always carries the same name as the Kafka user. For creating
+users and granting them permissions, see [User Management](../functions/20-user.mdx).
 
-### client-ssl.properties (Without Authentication)
+<Directive type="warning" title="Three different things are called a password">
+The names are easy to mix up, and only one of them is a credential:
 
+| Key | What it is | Still needed with PEM |
+| --- | --- | --- |
+| `ca.password` | The passphrase of the `ca.p12` **file** | No |
+| `user.password` | The passphrase of the `user.p12` **file** | No |
+| `password` (SCRAM-SHA-512 users only) | The user's actual **login credential** | **Yes, always** |
 
+`ca.password` and `user.password` exist only because PKCS12 files are encrypted containers. Switch a
+client to PEM and both become irrelevant — `user.crt`, `user.key` and `ca.crt` carry no passphrase,
+so there is no `ssl.keystore.password` or `ssl.truststore.password` to set.
+
+A SCRAM-SHA-512 user has **no** `user.password` key at all; its `password` is how the user
+authenticates and is required no matter which certificate format the transport uses. Note that a
+SCRAM-SHA-512 user still needs the cluster trust material when the listener has `tls: true` — a
+password authenticates the client, it does not encrypt the connection.
+</Directive>
+
+## Extracting the material
+
+<Tabs>
+  <Tab label="PKCS12">
+    Each store comes with the passphrase that unlocks it:
+
+    ```bash
+    # Trust material
+    kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+      -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+    kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+      -o jsonpath='{.data.ca\.password}' | base64 -d > ca.password
+
+    # Client identity, mutual TLS only
+    kubectl -n <namespace> get secret <user> \
+      -o jsonpath='{.data.user\.p12}' | base64 -d > user.p12
+    kubectl -n <namespace> get secret <user> \
+      -o jsonpath='{.data.user\.password}' | base64 -d > user.password
+    ```
+  </Tab>
+  <Tab label="PEM">
+    There is no password to extract — PEM files are not encrypted containers:
+
+    ```bash
+    # Trust material
+    kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+      -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+
+    # Client identity, mutual TLS only
+    kubectl -n <namespace> get secret <user> \
+      -o jsonpath='{.data.user\.crt}' | base64 -d > user.crt
+    kubectl -n <namespace> get secret <user> \
+      -o jsonpath='{.data.user\.key}' | base64 -d > user.key
+    ```
+
+    The trust material is also published on the `Kafka` resource, which avoids having to know the
+    Secret name:
+
+    ```bash
+    kubectl -n <namespace> get kafka <instance> \
+      -o jsonpath='{.status.listeners[?(@.name=="external")].certificates[0]}' > ca.crt
+    ```
+  </Tab>
+  <Tab label="SCRAM-SHA-512 password">
+    ```bash
+    kubectl -n <namespace> get secret <user> \
+      -o jsonpath='{.data.password}' | base64 -d
+    ```
+
+    In the web console the same value is on the **User Management** tab, under the secret linked to
+    the user.
+  </Tab>
+</Tabs>
+
+<Directive type="warning">
+These files contain credentials. Store them with restrictive permissions (`chmod 600`), keep them
+out of version control and container images, and mount them into workloads from a Kubernetes Secret
+rather than baking them in.
+</Directive>
+
+## Property reference
+
+### Trust material
+
+| Property | PKCS12 | PEM |
+| --- | --- | --- |
+| `ssl.truststore.type` | `PKCS12` | `PEM` |
+| `ssl.truststore.location` | Path to `ca.p12` | Path to `ca.crt` |
+| `ssl.truststore.password` | Contents of `ca.password` | **Do not set** |
+| `ssl.truststore.certificates` | — | Contents of `ca.crt`, in place of `location` |
+
+### Client identity, mutual TLS
+
+| Property | PKCS12 | PEM |
+| --- | --- | --- |
+| `ssl.keystore.type` | `PKCS12` | `PEM` |
+| `ssl.keystore.location` | Path to `user.p12` | Path to a file holding `user.key` **and** `user.crt` |
+| `ssl.keystore.password` | Contents of `user.password` | **Do not set** |
+| `ssl.keystore.certificate.chain` | — | Contents of `user.crt`, in place of `location` |
+| `ssl.keystore.key` | — | Contents of `user.key`, in place of `location` |
+
+### Client identity, SCRAM-SHA-512
+
+| Property | Value |
+| --- | --- |
+| `sasl.mechanism` | `SCRAM-SHA-512` |
+| `sasl.jaas.config` | `org.apache.kafka.common.security.scram.ScramLoginModule required username="<user>" password="<password>";` |
+
+### Hostname verification
+
+| Property | Value | Effect |
+| --- | --- | --- |
+| `ssl.endpoint.identification.algorithm` | `https` (default) | The client checks that the address it dialled is in the broker certificate |
+| | empty | The check is skipped |
+
+Leave this at its default. Only set it to an empty value when the broker certificates cannot be made
+to contain the addresses your client uses — see
+[Making TLS hostname verification work](./20-connect.mdx#making-tls-hostname-verification-work) for
+the alternatives and what the check protects against.
+
+## Ready-to-use configuration files
+
+Each block below is a complete `client.properties`. Add `bootstrap.servers` and the serializers in
+your application, or pass the file to the console tools as shown in
+[Verifying the configuration](#verifying-the-configuration).
+
+<Tabs>
+  <Tab label="TLS, no authentication">
+    ```properties
+    security.protocol=SSL
+
+    ssl.truststore.type=PKCS12
+    ssl.truststore.location=/home/kafka/ca.p12
+    ssl.truststore.password=<contents of ca.password>
+    ```
+  </Tab>
+  <Tab label="TLS + SCRAM-SHA-512">
+    ```properties
+    security.protocol=SASL_SSL
+
+    ssl.truststore.type=PKCS12
+    ssl.truststore.location=/home/kafka/ca.p12
+    ssl.truststore.password=<contents of ca.password>
+
+    sasl.mechanism=SCRAM-SHA-512
+    sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+        username="<user>" \
+        password="<password>";
+    ```
+  </Tab>
+  <Tab label="TLS + mutual TLS">
+    ```properties
+    security.protocol=SSL
+
+    ssl.truststore.type=PKCS12
+    ssl.truststore.location=/home/kafka/ca.p12
+    ssl.truststore.password=<contents of ca.password>
+
+    ssl.keystore.type=PKCS12
+    ssl.keystore.location=/home/kafka/user.p12
+    ssl.keystore.password=<contents of user.password>
+    ```
+  </Tab>
+  <Tab label="No TLS + SCRAM-SHA-512">
+    ```properties
+    security.protocol=SASL_PLAINTEXT
+
+    sasl.mechanism=SCRAM-SHA-512
+    sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
+        username="<user>" \
+        password="<password>";
+    ```
+  </Tab>
+  <Tab label="PEM files">
+    A Java client reads PEM directly — no PKCS12 conversion and no store passwords.
+
+    A file-based PEM **keystore** must hold the private key and the certificate in a single file, so
+    concatenate them first. The order does not matter:
+
+    ```bash
+    cat user.key user.crt > user.pem
+    ```
+
+    ```properties
+    security.protocol=SSL
+
+    ssl.truststore.type=PEM
+    ssl.truststore.location=/home/kafka/ca.crt
+
+    # Mutual TLS only
+    ssl.keystore.type=PEM
+    ssl.keystore.location=/home/kafka/user.pem
+    ```
+
+    Combine with `sasl.*` and `security.protocol=SASL_SSL` for SCRAM-SHA-512 instead of mutual TLS.
+  </Tab>
+  <Tab label="PEM inline">
+    `ssl.truststore.certificates`, `ssl.keystore.certificate.chain` and `ssl.keystore.key` take the
+    PEM **content** rather than a path, so a client needs no certificate files on disk at all. This
+    suits configuration that is itself delivered as a Kubernetes Secret or a config map.
+
+    In a properties file, every line of a multi-line value except the last must end with a backslash:
+
+    ```properties
+    security.protocol=SSL
+
+    ssl.truststore.type=PEM
+    ssl.truststore.certificates=-----BEGIN CERTIFICATE----- \
+    MIIFLTCCAxWgAwIBAgIU... \
+    ...
+    -----END CERTIFICATE-----
+
+    ssl.keystore.type=PEM
+    ssl.keystore.certificate.chain=-----BEGIN CERTIFICATE----- \
+    MIIEnTCCAoWgAwIBAgIU... \
+    ...
+    -----END CERTIFICATE-----
+    ssl.keystore.key=-----BEGIN PRIVATE KEY----- \
+    MIIJQgIBADANBgkqhki... \
+    ...
+    -----END PRIVATE KEY-----
+    ```
+
+    Generate the continuations rather than editing them by hand:
+
+    ```bash
+    {
+      printf 'ssl.truststore.type=PEM\nssl.truststore.certificates='
+      sed 's/$/ \\/' ca.crt | sed '$ s/ \\$//'
+    } >> client.properties
+    ```
+
+    Setting the value directly on a `Properties` object in Java needs no continuations — pass the
+    file contents as a plain string.
+  </Tab>
+</Tabs>
+
+<Directive type="note" title="PEM stores have no password">
+`ssl.truststore.password` and `ssl.keystore.password` apply to PKCS12 only. Leaving one set while
+switching a store to PEM is rejected outright, so the mistake is at least easy to spot:
+
+```text
+org.apache.kafka.common.errors.InvalidConfigurationException:
+  SSL trust store password cannot be specified for PEM format.
 ```
-$ cat << EOF > client-ssl.properties
-security.protocol=SSL
-ssl.truststore.type=PKCS12
-ssl.truststore.location=/home/kafka/ca.p12
-ssl.truststore.password={CA certificate password}
-EOF
+
+The user private key is issued in PKCS#8 form (`-----BEGIN PRIVATE KEY-----`), which Java reads
+directly. No `openssl pkcs8` conversion step is needed.
+</Directive>
+
+## Verifying the configuration
+
+Test the configuration with the console tools before wiring it into an application. This separates
+connectivity and credential problems from application problems.
+
+```bash
+# List topics
+kafka-topics.sh --bootstrap-server <bootstrap-address> \
+  --command-config client.properties --list
+
+# Show which addresses the brokers advertise back to the client
+kafka-broker-api-versions.sh --bootstrap-server <bootstrap-address> \
+  --command-config client.properties
+
+# Round trip
+echo 'hello' | kafka-console-producer.sh --bootstrap-server <bootstrap-address> \
+  --producer.config client.properties --topic <topic>
+kafka-console-consumer.sh --bootstrap-server <bootstrap-address> \
+  --consumer.config client.properties --topic <topic> --from-beginning --max-messages 1
 ```
 
-### client.properties (For SCRAM-SHA-512 Authentication)
+`kafka-broker-api-versions.sh` is the quickest way to confirm the second hop: it prints the address
+of every broker as the client sees it, which is what a client will actually dial after bootstrapping.
 
-**Prerequisite**: On the **User Management** tab, click on the secret dictionary and record the value of the **password** field.
+<Directive type="note" title="Which flag the console tools take">
+`kafka-console-producer.sh` and `kafka-console-consumer.sh` accept `--command-config` only from
+Kafka 4.2 onwards, where it replaces the now-deprecated `--producer.config` and `--consumer.config`.
+Earlier client versions accept the old flags only, so the examples above use those — they work
+against a 4.2 broker and merely print a deprecation warning. The other tools, including
+`kafka-topics.sh` and `kafka-broker-api-versions.sh`, have always used `--command-config`.
+</Directive>
 
+### Testing from inside the cluster
 
-```
-$ cat << EOF > client.properties
+The tools ship inside the broker image, which is the quickest way to check an instance without
+installing a client. The trust material is already mounted in the broker pod, so only the
+credentials have to be supplied:
+
+```bash
+kubectl -n <namespace> exec <instance>-broker-<suffix>-0 -c kafka -- sh -c '
+cat > /tmp/client.properties <<EOF
 security.protocol=SASL_SSL
-ssl.truststore.type=PKCS12
-ssl.truststore.location=/home/kafka/ca.p12
-ssl.truststore.password={CA certificate password}
-
 sasl.mechanism=SCRAM-SHA-512
 sasl.jaas.config=org.apache.kafka.common.security.scram.ScramLoginModule required \
-    username="{Kafka user name}" \
-    password="{Kafka user password}";
-
-EOF
-```
-
-### client-ssl.properties (For TLS Authentication)
-
-
-```
-$ cat << EOF > client-ssl.properties
-security.protocol=SSL
+    username="<user>" password="<password>";
 ssl.truststore.type=PKCS12
-ssl.truststore.location={client path}/ca.p12
-ssl.truststore.password={CA certificate password}
-
-ssl.keystore.type=PKCS12
-ssl.keystore.location=/home/kafka/user.p12
-ssl.keystore.password={user certificate password}
+ssl.truststore.location=/opt/kafka/cluster-ca-certs/ca.p12
+ssl.truststore.password=$(cat /opt/kafka/cluster-ca-certs/ca.password)
 EOF
+/opt/kafka/bin/kafka-topics.sh --bootstrap-server <bootstrap-address> \
+  --command-config /tmp/client.properties --list'
 ```
-<Directive type="tip">
-To enable external access, include ssl.endpoint.identification.algorithm= in the configuration file.
+
+| Path in the broker pod | Contents |
+| --- | --- |
+| `/opt/kafka/bin/` | The Kafka command line tools |
+| `/opt/kafka/cluster-ca-certs/` | `ca.crt`, `ca.p12` and `ca.password` — the trust material |
+
+Point `--bootstrap-server` at the **external** address to exercise the out-of-cluster path,
+including TLS hostname verification, exactly as an outside client would.
+
+### Testing from a machine outside the cluster
+
+This is the test that matters for an `external` listener, because it exercises the real network path
+and the real certificate names. It needs no local Kafka or Java installation — a container image
+with the tools is enough.
+
+First extract the trust material and the password to a working directory:
+
+```bash
+kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+  -o jsonpath='{.data.ca\.crt}' | base64 -d > ca.crt
+kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+  -o jsonpath='{.data.ca\.p12}' | base64 -d > ca.p12
+kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+  -o jsonpath='{.data.ca\.password}' | base64 -d > ca.password
+```
+
+**Check the certificate before involving a Kafka client.** `openssl` answers the hostname-verification
+question on its own, which separates a certificate problem from a credential or access control
+problem:
+
+```console
+$ openssl s_client -connect <node-address>:<bootstrap-node-port> 2>/dev/null | \
+    openssl x509 -noout -ext subjectAltName
+X509v3 Subject Alternative Name:
+    DNS:dk1-kafka-bootstrap, ..., IP Address:192.168.136.224, IP Address:192.168.138.211
+
+$ openssl s_client -connect <node-address>:<bootstrap-node-port> \
+    -CAfile ca.crt -verify_ip <node-address> -verify_return_error 2>&1 | grep 'Verify return code'
+Verify return code: 0 (ok)
+```
+
+`Verify return code: 64 (IP address mismatch)` means the address is missing from the certificate —
+see [Making TLS hostname verification work](./20-connect.mdx#making-tls-hostname-verification-work).
+Use `-verify_hostname` in place of `-verify_ip` when connecting by name.
+
+Then run the Kafka tools from a container, mounting the working directory:
+
+```bash
+docker run --rm -v "$PWD":/work apache/kafka:4.0.0 \
+  /opt/kafka/bin/kafka-topics.sh --bootstrap-server <node-address>:<bootstrap-node-port> \
+  --command-config /work/client.properties --list
+```
+
+The property file must reference the paths **inside** the container, for example
+`ssl.truststore.location=/work/ca.p12`.
+
+<Directive type="note" title="Both port ranges have to be reachable">
+Bootstrapping only proves the bootstrap node port is open. Run `kafka-broker-api-versions.sh` as
+well: it prints each broker's advertised address, and it fails if the per-broker node ports are
+blocked. With the default `externalTrafficPolicy` of `Cluster`, every per-broker node port answers on
+**any** node, so a client does not have to reach the specific node a broker runs on.
 </Directive>
 
-## IV. Copy Files to Client
+### Copying the files to a client inside the cluster
 
-**Tip**: Please refer to the table in the required file preview to determine the necessary files for your method of access.
-
-**Intra-cluster Access**
-
-Ensure that the required files are placed in the paths mentioned in the client configuration files.
-
-```
-$ kubectl cp ./{required file name} {Kafka client namespace}/{Kafka client Pod name}:/home/kafka/ -c kafka
+```bash
+kubectl cp ./ca.p12 <namespace>/<client-pod>:/home/kafka/ -c <container>
 ```
 
-**External Access**
+## Client examples
 
-Ensure that the required files are placed in the paths mentioned in the client configuration files.
+### Java
+
+Load the properties file instead of hard-coding credentials, so the same code works for every
+combination above:
+
+```java
+package com.example.kafka;
+
+import java.io.FileReader;
+import java.util.Properties;
+
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
+
+public class ExampleProducer {
+    public static void main(String[] args) throws Exception {
+        Properties props = new Properties();
+        try (FileReader reader = new FileReader("/home/kafka/client.properties")) {
+            props.load(reader);
+        }
+
+        props.put("bootstrap.servers", "192.168.136.224:31114");
+        props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+        props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer");
+
+        try (KafkaProducer<String, String> producer = new KafkaProducer<>(props)) {
+            producer.send(new ProducerRecord<>("my-topic", "key", "value")).get();
+        }
+    }
+}
+```
+
+Any of the property sets above can be loaded this way, PKCS12 or PEM. Setting PEM material
+programmatically is simpler than in a properties file, because the backslash continuations are only
+a properties-file convention — a plain string works:
+
+```java
+props.put("security.protocol", "SSL");
+props.put("ssl.truststore.type", "PEM");
+props.put("ssl.truststore.certificates", Files.readString(Path.of("/home/kafka/ca.crt")));
+
+// Mutual TLS only
+props.put("ssl.keystore.type", "PEM");
+props.put("ssl.keystore.certificate.chain", Files.readString(Path.of("/home/kafka/user.crt")));
+props.put("ssl.keystore.key", Files.readString(Path.of("/home/kafka/user.key")));
+```
+
+This form reads the material straight out of a mounted Secret and keeps it in memory, so no
+combined `user.pem` file has to be produced.
+
+### Spring Boot
+
+Spring Boot maps the common settings onto `spring.kafka.*` and passes anything else straight through
+to the Kafka client. No Java code is needed for the connection itself — it is entirely
+`application.yml`.
+
+**Dependencies.** `spring-kafka` on its own does not bring in the Spring Boot core, so declare both.
+Versions come from the Spring Boot parent, so do not pin them:
+
+```xml
+<parent>
+  <groupId>org.springframework.boot</groupId>
+  <artifactId>spring-boot-starter-parent</artifactId>
+  <version>3.5.9</version>
+</parent>
+
+<dependencies>
+  <dependency>
+    <groupId>org.springframework.boot</groupId>
+    <artifactId>spring-boot-starter</artifactId>
+  </dependency>
+  <dependency>
+    <groupId>org.springframework.kafka</groupId>
+    <artifactId>spring-kafka</artifactId>
+  </dependency>
+</dependencies>
+```
+
+**TLS with SCRAM-SHA-512.**
+
+```yaml
+spring:
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS}
+    security:
+      protocol: SASL_SSL
+    ssl:
+      trust-store-type: PKCS12
+      trust-store-location: file:${KAFKA_TRUSTSTORE_PATH}
+      trust-store-password: ${KAFKA_TRUSTSTORE_PASSWORD}
+    properties:
+      "[sasl.mechanism]": SCRAM-SHA-512
+      "[sasl.jaas.config]": >-
+        org.apache.kafka.common.security.scram.ScramLoginModule required
+        username="${KAFKA_USERNAME}"
+        password="${KAFKA_PASSWORD}";
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.apache.kafka.common.serialization.StringSerializer
+    consumer:
+      group-id: my-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+```
+
+**Mutual TLS.** Replace the SASL block with a keystore; everything else is unchanged:
+
+```yaml
+spring:
+  kafka:
+    security:
+      protocol: SSL
+    ssl:
+      trust-store-type: PKCS12
+      trust-store-location: file:${KAFKA_TRUSTSTORE_PATH}
+      trust-store-password: ${KAFKA_TRUSTSTORE_PASSWORD}
+      key-store-type: PKCS12
+      key-store-location: file:${KAFKA_KEYSTORE_PATH}
+      key-store-password: ${KAFKA_KEYSTORE_PASSWORD}
+```
+
+**PEM instead of PKCS12.** Set the store type to `PEM` and drop the passwords. The keystore location
+must point at a single file holding both the private key and the certificate
+(`cat user.key user.crt > user.pem`):
+
+```yaml
+spring:
+  kafka:
+    security:
+      protocol: SSL
+    ssl:
+      trust-store-type: PEM
+      trust-store-location: file:${KAFKA_CA_PEM}
+      key-store-type: PEM
+      key-store-location: file:${KAFKA_USER_PEM}
+```
+
+**PEM through an SSL bundle.** Spring Boot can hold the material in a named bundle that Kafka then
+references through `spring.kafka.ssl.bundle`. This form takes the certificate and the private key as
+**separate** files, so the Kubernetes Secret can be mounted as-is with no concatenation step:
+
+```yaml
+spring:
+  ssl:
+    bundle:
+      pem:
+        kafka:
+          truststore:
+            certificate: file:${KAFKA_CA_PEM}
+          keystore:
+            certificate: file:${KAFKA_USER_CRT}
+            private-key: file:${KAFKA_USER_KEY}
+  kafka:
+    security:
+      protocol: SSL
+    ssl:
+      bundle: kafka
+```
+
+Omit the `keystore` block for a SCRAM-SHA-512 listener, where only trust material is needed. A bundle
+also accepts `reload-on-update: true`, which picks up a renewed certificate from the mounted Secret
+without restarting the application.
+
+SSL bundles are a recent addition to Spring Boot; the configuration above is verified on 3.5. If
+`spring.kafka.ssl.bundle` is rejected as an unknown property, the application is on a version that
+predates it — use the `spring.kafka.ssl.*` form instead.
+
+| Form | Keystore input | Reload on update |
+| --- | --- | --- |
+| `spring.kafka.ssl.*` with PKCS12 | `user.p12` plus its password | No |
+| `spring.kafka.ssl.*` with PEM | one file, key and certificate concatenated | No |
+| `spring.ssl.bundle.pem.*` | two files, mounted directly from the Secret | Yes |
+
+Three details that are easy to get wrong:
+
+- **Store locations are Spring resources**, so they need a `file:` or `classpath:` prefix. A bare
+  path is treated as a classpath resource and the application fails to start with
+  `class path resource [...] cannot be resolved to URL because it does not exist`.
+- **Use the bracketed, quoted form** for keys under `spring.kafka.properties` —
+  `"[sasl.mechanism]"`. This is the form Spring Boot's own reference uses and it passes the key
+  through verbatim. Plain dotted keys happen to work for Kafka's all-lowercase option names, but the
+  bracketed form is the safe habit because relaxed binding can otherwise rewrite a key.
+- **Hostname verification** has no dedicated `spring.kafka` property, so it is passed through like
+  any other client option. Only do this when
+  [Option 4](./20-connect.mdx#option-4-disable-verification-on-the-client) applies:
+
+  ```yaml
+  spring:
+    kafka:
+      properties:
+        "[ssl.endpoint.identification.algorithm]": ""
+  ```
+
+Producing and consuming then use the ordinary Spring abstractions:
+
+```java
+@Component
+public class OrderMessaging {
+
+    private final KafkaTemplate<String, String> template;
+
+    public OrderMessaging(KafkaTemplate<String, String> template) {
+        this.template = template;
+    }
+
+    public void send(String payload) {
+        template.send("orders", "key", payload);
+    }
+
+    @KafkaListener(topics = "orders")
+    public void receive(String payload) {
+        // handle the message
+    }
+}
+```
+
+<Directive type="warning" title="Do not put credentials in application.yml">
+The example reads every secret from the environment. In Kubernetes, mount the Kafka Secrets as a
+volume and point the paths at the mount, rather than baking stores and passwords into the image or
+the configuration file:
+
+```yaml
+env:
+  - name: KAFKA_TRUSTSTORE_PATH
+    value: /etc/kafka-certs/ca.p12
+  - name: KAFKA_TRUSTSTORE_PASSWORD
+    valueFrom:
+      secretKeyRef:
+        name: <instance>-cluster-ca-cert
+        key: ca.password
+volumeMounts:
+  - name: kafka-certs
+    mountPath: /etc/kafka-certs
+    readOnly: true
+volumes:
+  - name: kafka-certs
+    secret:
+      secretName: <instance>-cluster-ca-cert
+```
+</Directive>
+
+### Python
+
+`confluent-kafka` is built on librdkafka and takes PEM files directly:
+
+```python
+from confluent_kafka import Producer
+
+producer = Producer({
+    "bootstrap.servers": "192.168.136.224:31114",
+    "security.protocol": "SASL_SSL",
+    "ssl.ca.location": "/home/kafka/ca.crt",
+    "sasl.mechanism": "SCRAM-SHA-512",
+    "sasl.username": "<user>",
+    "sasl.password": "<password>",
+})
+
+producer.produce("my-topic", key="key", value="value")
+producer.flush()
+```
+
+For mutual TLS, replace the SASL settings with `ssl.certificate.location` (`user.crt`) and
+`ssl.key.location` (`user.key`).
+
+## Certificate and credential lifecycle
+
+| Event | Effect on clients | What to do |
+| --- | --- | --- |
+| Cluster certificate authority renewed | Broker certificates are re-issued under a new authority certificate | Re-extract `ca.p12` or `ca.crt` and restart the clients |
+| User certificate renewed or expired | The client can no longer authenticate | Re-extract `user.p12` or `user.crt` and `user.key` |
+| SCRAM-SHA-512 password rotated | Authentication fails immediately | Re-read `password` from the user Secret |
+| Broker address list changed | Bootstrap may still work while individual brokers become unreachable | Update `bootstrap.servers`; see [Configuring Access](./20-connect.mdx) |
+
+Both certificate authorities are created with a validity of 3650 days by default. Check the
+remaining validity of the trust material with:
+
+```bash
+kubectl -n <namespace> get secret <instance>-cluster-ca-cert \
+  -o jsonpath='{.data.ca\.crt}' | base64 -d | openssl x509 -noout -dates
+```
+
+<Directive type="tip">
+Mount the Secret into client workloads as a volume instead of copying files. Kubernetes updates
+mounted Secret contents in place, so a renewed certificate reaches the client without rebuilding an
+image — the client still has to reload it or restart.
+</Directive>
+
+## Troubleshooting
+
+The messages below are the exact text a Kafka 4.x Java client prints for each cause.
+
+### Transport and trust
+
+| Message | Cause | Fix |
+| --- | --- | --- |
+| `CertificateException: No subject alternative names matching IP address ... found` | The address the client dialled is not in the broker certificate | See [Making TLS hostname verification work](./20-connect.mdx#making-tls-hostname-verification-work) |
+| `SslAuthenticationException: SSL handshake failed`, caused by `PKIX path building failed ... unable to find valid certification path to requested target` | Wrong trust material — usually `<instance>-clients-ca-cert` instead of `<instance>-cluster-ca-cert` | Re-extract from `<instance>-cluster-ca-cert` |
+| `Keystore was tampered with, or password was incorrect` | Password does not match the store | Re-extract both the store and its password; a trailing newline from a shell redirect is a common cause |
+| `TimeoutException: Timed out waiting for a node assignment` **and no TLS error at all** | `security.protocol` does not match the listener. A TLS client against an unencrypted listener produces a bare timeout, not a handshake error | Compare `security.protocol` against the listener's `tls` setting in the [combination table](#what-a-client-needs) |
+| Bootstrap succeeds, then `Connection to node N could not be established` | The advertised broker addresses are not reachable from the client network | Check the per-broker node ports and firewall rules; consider `advertisedHost` |
+
+### Authentication
+
+| Message | Cause | Fix |
+| --- | --- | --- |
+| `SaslAuthenticationException: Authentication failed during authentication due to invalid credentials with SASL mechanism SCRAM-SHA-512` | Wrong password, or the user was created with `authentication.type: tls` and therefore has no password at all | Confirm the user's `authentication.type` matches the listener's |
+| `SslAuthenticationException: Failed to process post-handshake messages`, caused by `Received fatal alert: certificate_required` | The listener requires mutual TLS but the client sent no client certificate — typically SCRAM credentials aimed at an `authentication.type: tls` listener | Supply the user's keystore, or point the client at a listener that offers SCRAM-SHA-512 |
+
+### Authorization
+
+| Message | Cause | Fix |
+| --- | --- | --- |
+| `TopicAuthorizationException: Not authorized to access topics: [...]` | The client has no matching access control list entry for the topic. If the listener has no authentication the client is `User:ANONYMOUS` and matches nothing | Grant the entry on the Kafka user, or give the listener an authentication mechanism |
+| `GroupAuthorizationException: Not authorized to access group: <group>` | Topic permissions were granted but the consumer group was not | Add a `group` entry with `Read` for the exact group id the client uses |
+| `ClusterAuthorizationException: Cluster authorization failed` **from a producer** | Misleading. The idempotent producer — the default since Kafka 3.0 — reports a missing topic `Write` permission as a cluster error | Grant `Write` on the topic. Setting `enable.idempotence=false` makes the same failure report as `TopicAuthorizationException`, which is useful for diagnosis |
+
+`kafka-topics --list` returning an **empty list** rather than an error is also an authorization
+symptom: the client may not `Describe` any topic.

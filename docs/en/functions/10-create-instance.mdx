@@ -84,22 +84,22 @@ You can create a Kafka instance to build a high-throughput, low-latency real-tim
           external:
             type: nodeport
             tls: false
-	  mode: KRaft
-	  controller:
-	    replicas: 3
-	    resources:
-	  	limits:
-	  	  cpu: 1
-	  	  memory: 2Gi
-	  	requests:
-	  	  cpu: 1
-	  	  memory: 2Gi
-	    roles:
-	  	  - controller
-	    storage:
-	  	  size: 1Gi
-	  	  class: sc-topolvm
-	  	  deleteClaim: false
+      mode: KRaft
+      controller:
+        replicas: 3
+        resources:
+          limits:
+            cpu: 1
+            memory: 2Gi
+          requests:
+            cpu: 1
+            memory: 2Gi
+        roles:
+          - controller
+        storage:
+          size: 1Gi
+          class: sc-topolvm
+          deleteClaim: false
     EOF
     ```
   </Tab>
