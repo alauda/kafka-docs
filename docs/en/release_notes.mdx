@@ -8,6 +8,31 @@ i18n:
 
 # Release Notes
 
+## v4.3.5
+
+v4.3.5 replaces v4.3.4, which was not released.
+
+### New and Optimized Features
+
+#### Create Strimzi Resources from OperatorHub
+- OperatorHub now offers a Create entry, with a form and an example, for the Strimzi resources such as Kafka, KafkaNodePool, KafkaTopic, KafkaUser, KafkaConnect, KafkaConnector, KafkaBridge and KafkaMirrorMaker2.
+- Creating a Kafka cluster this way takes a Kafka resource and at least one KafkaNodePool. Both forms say so.
+- The Kafka and RdsKafka forms now include listener authentication and authorization settings.
+- The Kafka, KafkaTopic and KafkaUser examples now use production-ready settings. The KafkaBridge and KafkaConnect examples connect to an authenticated listener.
+
+#### Operator Permissions and Resource Limits
+- The operator's cluster role now lists explicit verbs for the Data Services resources, CustomResourceDefinitions and leases, instead of wildcards.
+- The operator's containers now set ephemeral storage requests and limits.
+
+### Fixed Issues
+- Fixed the KafkaNodePool CustomResourceDefinition in the operator bundle, which lacked fields that the operator supports.
+
+#### Security Fixes
+- Fixed known vulnerabilities in the Kafka operator and Kafka 4.2.x images.
+- Updated the Kafka Bridge image to v4.1.6 to address known vulnerabilities.
+- Updated the bundled Alauda Container Platform Data Services RDS Framework operator image to address known vulnerabilities.
+- Updated the Kafka web console plugin image to address known vulnerabilities.
+
 ## v4.3.3
 
 ### Fixed Issues
