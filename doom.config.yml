@@ -21,3 +21,7 @@ releaseNotes:
       status in (Done, Resolved) AND (labels not in (安全问题) OR labels is EMPTY) AND project = ECO AND fixVersion = Kafka-v4.3.3 AND ReleaseNotesStatus = Publish
     mw-kafka-v4.3.3-known: |
       project = ECO AND type = Bug AND ReleaseNotesStatus = Publish AND affectedVersion in (Kafka-v4.3.3) AND fixVersion is EMPTY
+    mw-kafka-v4.3.5-fixed: |
+      status in (Done, Resolved, 完成) AND (labels not in (安全问题) OR labels is EMPTY) AND project = ECO AND fixVersion = Kafka-v4.3.5 AND ReleaseNotesStatus = Publish
+    mw-kafka-v4.3.5-known: |
+      project = ECO AND type = Bug AND ReleaseNotesStatus = Publish AND affectedVersion in (Kafka-v4.3.5) AND fixVersion is EMPTY
