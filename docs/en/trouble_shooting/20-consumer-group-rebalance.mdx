@@ -1,0 +1,115 @@
+---
+weight: 20
+---
+
+# Consumer Group Rebalance
+
+Kafka consumer group rebalance is the process of redistributing partitions among consumers in the same group. A rebalance is expected when the group membership changes, topic partitions change, or a consumer is considered unavailable. However, frequent or slow rebalances can reduce throughput and make consumer behavior unstable.
+
+This document describes the impact of consumer group rebalance, common causes, and practical ways to reduce rebalance frequency.
+
+## Impact of Rebalance
+
+Frequent rebalance can affect Kafka workloads in the following ways:
+
+- **Duplicate consumption**: If a consumer leaves the group before committing offsets, another consumer can be assigned the same partitions during rebalance and reprocess the same records. Even if downstream processing is idempotent, this still wastes compute resources and increases cluster pressure.
+- **Group instability**: A rebalance affects the whole consumer group, not only the consumer that triggered it. One unstable consumer can cause repeated partition movement across the group and delay the time required for the group to become stable again.
+- **Lower consumption throughput**: If the group spends too much time rebalancing, the consumers spend less time processing records. In severe cases, most of the time is lost to repeated reassignment, restart, and duplicate work.
+
+## Common Causes
+
+Kafka rebalance is triggered when partitions need to be reassigned. Common triggers include:
+
+- Consumers joining or leaving the group
+- Consumer process restarts or rolling updates
+- Topic partition count changes
+- Consumer heartbeat timeout
+- Long message processing time that prevents the consumer from polling in time
+
+Version-specific behavior is also important:
+
+- **Kafka clients earlier than 0.10.2**: Heartbeat handling is coupled with the `poll()` loop. If the application does not call `poll()` for a long time, or if `poll()` processing takes too long, heartbeat timeout can occur and the group coordinator can treat the consumer as failed.
+- **Kafka clients 0.10.2 and later**: The client maintains heartbeats in a background thread, but the consumer still leaves the group if the time between two `poll()` calls exceeds `max.poll.interval.ms`. The default value is 5 minutes. Slow processing can therefore still trigger rebalance.
+
+## Optimization Recommendations
+
+### Optimize Consumer Startup and Shutdown
+
+Avoid frequent consumer restarts, repeated scaling actions, or unnecessary rolling updates. If consumers are often started and stopped, the group will continuously rebalance.
+
+For planned operations such as upgrades or scaling, use a controlled rollout strategy to minimize simultaneous membership changes in the same group.
+
+### Tune Rebalance-Related Timeouts
+
+Adjust the following parameters according to your workload characteristics:
+
+| Parameter | Description |
+| :--- | :--- |
+| `max.poll.interval.ms` | Maximum allowed time between two `poll()` calls. If exceeded, the consumer leaves the group and triggers rebalance. |
+| `session.timeout.ms` | Maximum time the broker waits without receiving heartbeats before marking the consumer as dead. |
+| `heartbeat.interval.ms` | Interval between heartbeats sent by the consumer. |
+
+General guidance:
+
+- Increase `max.poll.interval.ms` if record processing is slow or batch processing takes a long time.
+- Set `session.timeout.ms` high enough to tolerate brief pauses, but not so high that failed consumers stay undetected for too long.
+- Keep `heartbeat.interval.ms` smaller than `session.timeout.ms` so the consumer can report liveness regularly.
+
+## Avoid Long Partition Processing Time
+
+If a consumer takes too long to process records from a partition, rebalance becomes more likely.
+
+Consider the following improvements:
+
+- Reduce the number of records processed in a single batch
+- Move expensive business logic out of the main polling path
+- Use asynchronous processing where appropriate
+- Increase concurrency in the application layer when the workload allows it
+- Review downstream dependencies such as databases or remote APIs that slow down record handling
+
+The main goal is to make sure the application can continue calling `poll()` within the expected time window.
+
+## Use Static Membership
+
+Static membership helps reduce unnecessary rebalance when a consumer instance restarts or reconnects within a short period.
+
+Set `group.instance.id` for each consumer instance so Kafka can recognize it as a stable member of the group. This reduces partition movement compared with dynamic membership.
+
+<Directive type="note" title="Note">
+Each consumer instance in the same group must use a unique `group.instance.id`.
+</Directive>
+
+## Monitor Rebalance Activity
+
+Monitor rebalance frequency and duration so that you can detect instability early.
+
+Recommended practices:
+
+- Track consumer lag together with rebalance frequency
+- Monitor consumer restart count and pod restart events
+- Check application logs for heartbeat timeout, poll interval timeout, and partition revocation messages
+- Build dashboards that show rebalance count, rebalance duration, lag, and throughput in the same time window
+
+If rebalance frequency increases together with lag or restart count, investigate the affected consumer group first.
+
+## Best Practices
+
+1. Avoid frequent scaling or restarts of consumers in the same group.
+2. Tune `max.poll.interval.ms`, `session.timeout.ms`, and `heartbeat.interval.ms` based on real processing time.
+3. Keep message processing time shorter than the configured poll interval budget.
+4. Use static membership with `group.instance.id` for stable long-running consumers.
+5. Monitor rebalance behavior continuously instead of only reacting after lag becomes severe.
+6. Test rebalance-sensitive workloads during upgrades, rolling restarts, and partition expansion.
+
+## Troubleshooting Checklist
+
+When rebalance happens frequently, check the following items:
+
+1. Whether consumers are restarting, scaling, or being rescheduled frequently
+2. Whether message processing time exceeds `max.poll.interval.ms`
+3. Whether `session.timeout.ms` and `heartbeat.interval.ms` are configured appropriately
+4. Whether the topic partition count changed recently
+5. Whether downstream dependency latency increased and slowed record processing
+6. Whether static membership is enabled for long-running consumers
+
+After identifying the trigger, adjust the consumer configuration or processing model before increasing cluster size. Rebalance issues are usually caused by consumer behavior or configuration, not only by insufficient Kafka capacity.
