@@ -1,6 +1,5 @@
 ---
 weight: 20
-sourceSHA: 2f5cd4d2207cc35f0355a8660e67b1277bd3382cdbf9bd4139bc1da5b8b9290b
 ---
 
 # User Management
@@ -44,7 +43,144 @@ Please configure the Kafka users as needed.
 
     6. Click on **Create**.
   </Tab>
+  <Tab label="YAML">
+    A user is created with an `RdsKafkaUser` resource. The label
+    `middleware.alauda.io/cluster` binds the user to a Kafka instance and is **required** — without
+    it the user is created but never takes effect on any instance.
+
+    `authentication.type` must be a mechanism the target listener offers, and every permission the
+    user needs has to be listed under `authorization.acls`; there is no implicit access.
+
+    **SCRAM-SHA-512 user**
+
+    ```yaml
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafkaUser
+    metadata:
+      name: app-producer
+      namespace: <namespace>
+      labels:
+        middleware.alauda.io/cluster: <instance>
+    spec:
+      authentication:
+        type: scram-sha-512
+      authorization:
+        type: simple
+        acls:
+          - host: "*"
+            operation: Write
+            resource:
+              type: topic
+              name: orders
+              patternType: literal
+          - host: "*"
+            operation: Describe
+            resource:
+              type: topic
+              name: orders
+              patternType: literal
+    ```
+
+    **Mutual TLS user**
+
+    ```yaml
+    apiVersion: middleware.alauda.io/v1
+    kind: RdsKafkaUser
+    metadata:
+      name: app-consumer
+      namespace: <namespace>
+      labels:
+        middleware.alauda.io/cluster: <instance>
+    spec:
+      authentication:
+        type: tls
+      authorization:
+        type: simple
+        acls:
+          - host: "*"
+            operation: Read
+            resource:
+              type: topic
+              name: orders
+              patternType: literal
+          - host: "*"
+            operation: Read
+            resource:
+              type: group
+              name: order-consumers
+              patternType: literal
+    ```
+
+    Check that the user is ready, then read its credentials:
+
+    ```console
+    $ kubectl -n <namespace> get kafkauser
+    NAME           CLUSTER   AUTHENTICATION   AUTHORIZATION   READY
+    app-producer   dk1       scram-sha-512    simple          True
+    app-consumer   dk1       tls              simple          True
+    ```
+
+    The credentials are stored in a Secret with the same name as the user. See
+    [Client Configuration Reference](../how_to/40-config.mdx) for what the Secret contains and how
+    to use it.
+  </Tab>
 </Tabs>
+
+### Permission reference
+
+| Field | Accepted values |
+| --- | --- |
+| `resource.type` | `topic`, `group`, `cluster`, `transactionalId` |
+| `resource.patternType` | `literal` (exact name), `prefix` (name prefix) |
+| `operation` | `Read`, `Write`, `Create`, `Delete`, `Alter`, `Describe`, `ClusterAction`, `AlterConfigs`, `DescribeConfigs`, `IdempotentWrite`, `All` |
+| `host` | A client host pattern, or `*` for any host |
+
+### What a producer and a consumer actually need
+
+Granting permissions on the topic alone is the most common mistake. The minimum sets below were
+verified against a Kafka 4.2 instance.
+
+| Client role | Required entries |
+| --- | --- |
+| Producer | `Write` **and** `Describe` on the topic |
+| Consumer | `Read` **and** `Describe` on the topic, **plus** `Read` on the consumer group |
+| Topic administration | `Create` / `Delete` / `AlterConfigs` / `DescribeConfigs` on the topic |
+
+Two results worth knowing, because the error messages do not point at the real cause:
+
+- **A consumer with topic permissions but no group entry fails on the group, not the topic**, with
+  `GroupAuthorizationException: Not authorized to access group: <group>`. The group id in the entry
+  must match the client's `group.id` exactly — `literal` compares the whole string.
+- **A producer missing topic `Write` reports a *cluster* error**, not a topic one:
+  `ClusterAuthorizationException: Cluster authorization failed`. This is because producers are
+  idempotent by default from Kafka 3.0 onwards. Granting `Write` on the topic resolves it; a
+  cluster-level `IdempotentWrite` entry is **not** required.
+
+A producer that only needs to write to one topic therefore needs nothing beyond:
+
+```yaml
+authorization:
+  type: simple
+  acls:
+    - host: "*"
+      operation: Write
+      resource: {type: topic, name: orders, patternType: literal}
+    - host: "*"
+      operation: Describe
+      resource: {type: topic, name: orders, patternType: literal}
+```
+
+<Directive type="tip" title="Use prefix patterns for topic families">
+`patternType: prefix` grants the entry to every topic whose name starts with `name`, which avoids
+editing the user each time a topic is added.
+</Directive>
+
+<Directive type="warning" title="Authorization needs an authenticated listener">
+Access control lists match on the authenticated principal. A client that connects through a listener
+with no `authentication` is `User:ANONYMOUS` and matches no entry, so every operation is denied even
+though the connection succeeds. See
+[Client Configuration Reference](../how_to/40-config.mdx#what-a-client-needs).
+</Directive>
 
 <Directive type="info" title="Notes">
   - User passwords or certificates are stored in a secure dictionary.
