@@ -9,3 +9,4 @@
 **/public/_remotes
 .aider*
 .idea
+**/target
