@@ -1,0 +1,512 @@
+---
+weight: 37
+---
+
+# Using Kafka Bridge
+
+Kafka Bridge is a Strimzi component that provides HTTP access to Kafka. Applications can use the Kafka Bridge REST API to send messages to Kafka topics and consume messages from Kafka topics without using native Kafka client libraries.
+
+Use Kafka Bridge when a client application must interact with Kafka through HTTP. For long-running data integration with source and sink connectors, use Kafka Connect instead.
+
+This document describes how to create a Kafka Bridge resource, expose the HTTP endpoint, and use common Kafka Bridge API operations.
+
+<Directive type="note" title="Note">
+The examples in this document use `default` as the namespace. In production environments, deploy Kafka Bridge in a dedicated namespace. Replace `default` with the namespace used in your environment.
+</Directive>
+
+## Prerequisites
+
+Before creating Kafka Bridge, ensure that the following conditions are met:
+
+1. The Strimzi operator is installed and watching the namespace where Kafka Bridge will be created.
+2. A Kafka cluster is running and reachable from the Kafka Bridge pods.
+3. Kafka topics used by HTTP clients are created or can be created according to your Kafka cluster policy.
+4. Kafka users, ACLs, and TLS certificates are prepared if the target Kafka cluster enables authentication or TLS.
+5. The network exposure method for the Kafka Bridge HTTP API is defined, such as internal `ClusterIP` access, external `NodePort` access, or OpenShift `Route`.
+
+## Create a Kafka Bridge
+
+The following example creates a Kafka Bridge named `my-bridge` and connects it to a Kafka cluster named `my-cluster` through the internal plain bootstrap service.
+
+```bash
+cat << EOF | kubectl -n default apply -f -
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaBridge
+metadata:
+  name: my-bridge
+spec:
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  http:
+    port: 8080
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 1
+      memory: 1Gi
+EOF
+```
+
+<Directive type="warning" title="Consumer Affinity">
+Kafka Bridge stores consumer instances in memory. If you run multiple Kafka Bridge replicas, all requests for the same consumer instance must be routed to the same bridge pod. Use session affinity or another stable routing strategy. If the bridge pod restarts, the consumer instance must be recreated. Default to `replicas: 1` unless your routing layer guarantees consumer affinity.
+</Directive>
+
+## Create a Kafka Bridge with TLS and SCRAM
+
+If the Kafka cluster requires TLS and SCRAM-SHA-512 authentication, configure `tls` and `authentication` in the `KafkaBridge` resource.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaBridge
+metadata:
+  name: my-bridge
+spec:
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9093
+  tls:
+    trustedCertificates:
+      - secretName: my-cluster-cluster-ca-cert
+        certificate: ca.crt
+  authentication:
+    type: scram-sha-512
+    username: my-bridge-user
+    passwordSecret:
+      secretName: my-bridge-user
+      password: password
+  http:
+    port: 8080
+```
+
+## Configure Consumer and Producer Defaults
+
+Use `spec.consumer` and `spec.producer` to set default consumer and producer configurations for all requests handled by the Kafka Bridge.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaBridge
+metadata:
+  name: my-bridge
+spec:
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  http:
+    port: 8080
+  consumer:
+    config:
+      auto.offset.reset: earliest
+  producer:
+    config:
+      delivery.timeout.ms: 300000
+      acks: all
+      linger.ms: 10
+```
+
+These settings apply as defaults for all consumers and producers created through the Bridge API. Individual API requests can override some values where the API supports it.
+
+## Configure Logging
+
+Kafka Bridge uses log4j2. Use `spec.logging` to configure log levels. Both inline and external configuration follow the log4j2 property syntax.
+
+Inline logging:
+
+```yaml
+spec:
+  logging:
+    type: inline
+    loggers:
+      rootLogger.level: INFO
+      logger.bridge.name: io.strimzi.kafka.bridge
+      logger.bridge.level: INFO
+      logger.healthy.name: http.openapi.operation.healthy
+      logger.healthy.level: WARN
+      logger.ready.name: http.openapi.operation.ready
+      logger.ready.level: WARN
+```
+
+Each custom logger requires a `logger.<key>.name` line that declares the target package or logger, plus a `logger.<key>.level` line that sets the level. The `<key>` is an arbitrary identifier used only inside the `loggers` map.
+
+External logging using a ConfigMap:
+
+```yaml
+spec:
+  logging:
+    type: external
+    valueFrom:
+      configMapKeyRef:
+        name: my-bridge-logging
+        key: log4j2.properties
+```
+
+## Configure Metrics
+
+Enable Prometheus metrics collection using `spec.metricsConfig`.
+
+```yaml
+spec:
+  metricsConfig:
+    type: jmxPrometheusExporter
+    valueFrom:
+      configMapKeyRef:
+        name: my-bridge-metrics
+        key: metrics-config.yml
+```
+
+Create the metrics ConfigMap with JMX exporter rules before applying the `KafkaBridge` resource. After metrics are enabled, configure a Prometheus `ServiceMonitor` or `PodMonitor` to scrape the metrics endpoint.
+
+## Configure Distributed Tracing
+
+Enable OpenTelemetry distributed tracing to track messages through Kafka Bridge.
+
+```yaml
+spec:
+  tracing:
+    type: opentelemetry
+  template:
+    bridgeContainer:
+      env:
+        - name: OTEL_EXPORTER_OTLP_ENDPOINT
+          value: http://otel-collector.observability.svc:4317
+        - name: OTEL_SERVICE_NAME
+          value: my-bridge
+```
+
+## Configure JVM Options
+
+Tune JVM memory allocation for Kafka Bridge pods using `spec.jvmOptions`.
+
+```yaml
+spec:
+  jvmOptions:
+    -Xms: 256m
+    -Xmx: 512m
+```
+
+Set `-Xms` and `-Xmx` according to the `spec.resources` memory values. Leave enough memory for non-heap usage.
+
+## Configure Health Checks
+
+Customize liveness and readiness probe settings if the default values do not match your environment.
+
+```yaml
+spec:
+  livenessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+```
+
+## Verify Kafka Bridge
+
+Check the Kafka Bridge status:
+
+```bash
+kubectl -n default get kafkabridge my-bridge
+kubectl -n default describe kafkabridge my-bridge
+```
+
+Check bridge pods:
+
+```bash
+kubectl -n default get pods -l strimzi.io/name=my-bridge-bridge
+```
+
+Forward the Kafka Bridge service for local testing:
+
+```bash
+kubectl -n default port-forward service/my-bridge-bridge-service 8080:8080
+```
+
+Check the API endpoint:
+
+```bash
+curl http://localhost:8080/
+```
+
+## Use the Kafka Bridge API
+
+The examples below use `http://localhost:8080` as the bridge endpoint.
+
+### Send JSON Records
+
+Use `application/vnd.kafka.json.v2+json` for JSON records.
+
+```bash
+curl -X POST http://localhost:8080/topics/my-topic \
+  -H 'content-type: application/vnd.kafka.json.v2+json' \
+  -d '{
+    "records": [
+      {"key": "order-1", "value": {"id": 1, "status": "created"}},
+      {"key": "order-2", "value": {"id": 2, "status": "created"}}
+    ]
+  }'
+```
+
+### Send Binary Records
+
+Use `application/vnd.kafka.binary.v2+json` for binary records. Keys and values must be Base64 encoded.
+
+```bash
+curl -X POST http://localhost:8080/topics/my-topic \
+  -H 'content-type: application/vnd.kafka.binary.v2+json' \
+  -d '{
+    "records": [
+      {"key": "dXNlci0x", "value": "aGVsbG8="}
+    ]
+  }'
+```
+
+### Create a Consumer
+
+Create a consumer instance under a consumer group.
+
+```bash
+curl -X POST http://localhost:8080/consumers/my-group \
+  -H 'content-type: application/vnd.kafka.v2+json' \
+  -d '{
+    "name": "my-consumer",
+    "format": "json",
+    "auto.offset.reset": "earliest",
+    "enable.auto.commit": false
+  }'
+```
+
+The response contains the consumer instance URL. Use that URL for subsequent subscription, polling, commit, and delete operations.
+
+### Subscribe to Topics
+
+Subscribe the consumer instance to one or more topics.
+
+```bash
+curl -X POST http://localhost:8080/consumers/my-group/instances/my-consumer/subscription \
+  -H 'content-type: application/vnd.kafka.v2+json' \
+  -d '{"topics": ["my-topic"]}'
+```
+
+### Retrieve Records
+
+Poll records from the subscribed topics.
+
+```bash
+curl -X GET http://localhost:8080/consumers/my-group/instances/my-consumer/records \
+  -H 'accept: application/vnd.kafka.json.v2+json'
+```
+
+If the response is empty, verify that the topic contains records and that the consumer offset is correct. The first poll can also return an empty array immediately after subscription while the consumer group assignment is still completing. Wait a few seconds and retry.
+
+### Commit Offsets
+
+If `enable.auto.commit` is `false`, commit offsets after records are processed.
+
+```bash
+curl -X POST http://localhost:8080/consumers/my-group/instances/my-consumer/offsets
+```
+
+### Delete a Consumer
+
+Delete the consumer instance when it is no longer needed.
+
+```bash
+curl -X DELETE http://localhost:8080/consumers/my-group/instances/my-consumer
+```
+
+<Directive type="warning" title="Important">
+Always delete unused consumer instances. Consumer instances that are not deleted remain allocated until they expire.
+</Directive>
+
+### Create a Topic
+
+Use the admin API to create a topic through the Kafka Bridge.
+
+```bash
+curl -X POST http://localhost:8080/admin/topics \
+  -H 'content-type: application/vnd.kafka.json.v2+json' \
+  -d '{
+    "topic_name": "my-new-topic",
+    "partitions_count": 3,
+    "replication_factor": 3
+  }'
+```
+
+Only `topic_name` is required. If `partitions_count` or `replication_factor` is omitted, the Kafka cluster defaults are used.
+
+### Common Content Types
+
+| Content Type | Usage |
+| :--- | :--- |
+| `application/vnd.kafka.v2+json` | Consumer creation, subscription, and general API requests. |
+| `application/vnd.kafka.json.v2+json` | Producing or consuming JSON records, and admin API requests such as topic creation. |
+| `application/vnd.kafka.binary.v2+json` | Producing or consuming Base64 encoded binary records. |
+
+## Expose Kafka Bridge by Service
+
+For internal testing, port forwarding is usually enough. For application access, you can expose Kafka Bridge through a Kubernetes `Service`, OpenShift `Route`, or `Ingress`.
+
+### ClusterIP
+
+Use `ClusterIP` when client applications run inside the cluster.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-bridge-access
+spec:
+  type: ClusterIP
+  selector:
+    strimzi.io/name: my-bridge-bridge
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+```
+
+### NodePort
+
+Use `NodePort` when external clients need direct access through node addresses.
+
+```yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: my-bridge-nodeport
+spec:
+  type: NodePort
+  selector:
+    strimzi.io/name: my-bridge-bridge
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+      nodePort: 30080
+```
+
+### OpenShift Route
+
+On OpenShift, use a `Route` to expose Kafka Bridge externally with TLS termination.
+
+```yaml
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: my-bridge-route
+spec:
+  to:
+    kind: Service
+    name: my-bridge-bridge-service
+  port:
+    targetPort: rest-api
+  tls:
+    termination: edge
+```
+
+### Ingress
+
+On Kubernetes clusters without OpenShift, use an `Ingress` resource.
+
+```yaml
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: my-bridge-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+spec:
+  rules:
+    - host: kafka-bridge.example.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: my-bridge-bridge-service
+                port:
+                  number: 8080
+```
+
+After the Service, Route, or Ingress is created, configure clients to use the corresponding endpoint as the Kafka Bridge HTTP URL.
+
+<Directive type="warning" title="Security">
+Do not expose Kafka Bridge without authentication, authorization, and network access control. Kafka Bridge provides HTTP access to Kafka operations and should only be reachable by trusted clients. Consider the following measures:
+
+- Use `NetworkPolicy` resources to restrict which pods or namespaces can reach the Kafka Bridge service.
+- On OpenShift, use OAuth Proxy as a sidecar or use the Route TLS termination with client certificate authentication.
+- Place an API gateway or reverse proxy in front of the Kafka Bridge to enforce authentication and rate limiting.
+- Use Kafka ACLs to limit which topics the bridge user can read from or write to.
+</Directive>
+
+## Key Configuration Parameters
+
+| Parameter | Description |
+| :--- | :--- |
+| `spec.replicas` | Number of Kafka Bridge pods. Use `1` unless your routing layer keeps requests for the same consumer instance on the same bridge pod. |
+| `spec.bootstrapServers` | Kafka bootstrap server used by Kafka Bridge. |
+| `spec.tls` | TLS configuration for encrypted Kafka connections. |
+| `spec.authentication` | Authentication configuration, such as SCRAM-SHA-512, TLS, or OAuth. |
+| `spec.http.port` | HTTP port exposed by Kafka Bridge. |
+| `spec.http.cors` | Optional CORS configuration for browser-based clients. |
+| `spec.consumer` | Default consumer configuration applied to all consumers created through the Bridge API. |
+| `spec.producer` | Default producer configuration applied to all producers created through the Bridge API. |
+| `spec.resources` | CPU and memory resource requests and limits. |
+| `spec.logging` | Logging configuration. Supports inline loggers or an external ConfigMap reference. |
+| `spec.metricsConfig` | Prometheus JMX exporter configuration for metrics collection. |
+| `spec.tracing` | Distributed tracing configuration. Supports OpenTelemetry. |
+| `spec.jvmOptions` | JVM memory and GC options for Kafka Bridge pods. |
+| `spec.livenessProbe` | Liveness probe configuration. |
+| `spec.readinessProbe` | Readiness probe configuration. |
+| `spec.template` | Template for customizing pod labels, annotations, affinity rules, and container environment variables. |
+
+## Configure CORS
+
+If browser-based clients need to access Kafka Bridge, configure CORS according to your allowed origins and HTTP methods.
+
+```yaml
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaBridge
+metadata:
+  name: my-bridge
+spec:
+  replicas: 1
+  bootstrapServers: my-cluster-kafka-bootstrap:9092
+  http:
+    port: 8080
+    cors:
+      allowedOrigins:
+        - https://app.example.com
+      allowedMethods:
+        - GET
+        - POST
+        - PUT
+        - DELETE
+        - OPTIONS
+```
+
+## Best Practices
+
+1. Use Kafka Bridge for HTTP integration and lightweight clients, not as the default path for high-throughput Kafka applications.
+2. Use native Kafka clients for services that require maximum throughput, partition-level tuning, or advanced Kafka client features.
+3. Restrict network access to Kafka Bridge using `NetworkPolicy` and apply platform-level authentication and rate limiting.
+4. Use Kafka ACLs to limit which topics the bridge user can read from or write to.
+5. Enable Prometheus metrics and configure dashboards to monitor HTTP request latency, error rate, pod restarts, and Kafka authentication failures.
+6. Configure logging at an appropriate level. Use `WARN` or `INFO` in production and `DEBUG` only for troubleshooting.
+7. Default to a single Kafka Bridge replica for mixed producer and consumer workloads unless your routing layer guarantees consumer affinity.
+8. If you scale Kafka Bridge for consumer traffic, ensure requests for each consumer instance stay pinned to the same bridge pod.
+9. Set `spec.consumer` and `spec.producer` defaults to enforce consistent behavior across all Bridge API requests.
+10. On OpenShift, prefer `Route` with TLS termination over `NodePort` for external access.
+
+## Troubleshooting
+
+| Symptom | Check |
+| :--- | :--- |
+| `KafkaBridge` is not ready | Check `kubectl describe kafkabridge`, bridge pod logs, and Kafka bootstrap connectivity. |
+| HTTP requests return authentication errors | Verify Kafka `spec.authentication`, referenced Secrets, and Kafka user ACLs. |
+| Produce requests fail | Verify the topic exists, the bridge user has write permission, and the payload content type is correct. |
+| Consume requests return no records | Verify the consumer subscription, offsets, topic data, and `auto.offset.reset` setting. |
+| Consumer requests fail after scaling or load balancing | Verify session affinity or other sticky routing for the same consumer instance. |
+| Browser clients fail | Verify CORS settings and Service exposure or TLS configuration. |
+| Metrics not available | Verify the metrics ConfigMap exists and `spec.metricsConfig` references the correct key. |
+| Tracing spans not visible | Verify `spec.tracing` is set and the OpenTelemetry collector is reachable. |
