@@ -122,10 +122,6 @@ kind: ConfigMap
 metadata:
   name: violet-version-checker-config
   namespace: cpaas-system
-  labels:
-    helm.sh/chart-name: alauda-base
-    helm.sh/release-name: alauda-base
-    helm.sh/release-namespace: cpaas-system
 data:
   supported-versions-range: '>=3.0.0 <5.0.0'
 ```
