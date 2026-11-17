@@ -108,6 +108,24 @@ This plugin manages Kafka instances for versions `2.x`; it can be omitted if `2.
 2. Use the platform's application listing capability to list the plugin in any cluster where you wish to use Alauda build of Kafka 2 capabilities.
 3. Ensure that the Alauda Streaming Service for Kafka Plugin is installed.
 
+:::note Uploading the Kafka 2 plugin package
+The Alauda build of Kafka 2 plugin package must be uploaded to the platform with the `violet` command-line tool at version **4.1 or earlier**. Version 4.1 and earlier verify the tool version against a ConfigMap on the `global` cluster before uploading, so `violet push` may fail with:
+
+`Failed to get supported version range: configmaps "violet-version-checker-config" not found`
+
+This error means the required `violet-version-checker-config` ConfigMap is missing. Create it manually in the `cpaas-system` namespace of the `global` cluster with the content below, then run `violet push` again.
+:::
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: violet-version-checker-config
+  namespace: cpaas-system
+data:
+  supported-versions-range: '>=3.0.0 <5.0.0'
+```
+
 ### Procedure
 
 <Tabs>
