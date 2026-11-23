@@ -20,8 +20,8 @@ The table below lists supported versions of the Alauda Streaming Service for Kaf
 |:--------------------:|:------------------------------:|:-------------------:|:-------------------:|
 | v4.3.x               | 4.2.0                          | KRaft               | 1.27+               |
 | v4.2.x               | 4.1.2                          | KRaft               | 1.27+               |
-| v4.1.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
-| v4.0.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
+| v4.1.x               | 3.8.1, 2.8.2 (with Kafka 2 Operator) | ZooKeeper & KRaft   | 1.25+               |
+| v4.0.x               | 3.8.1, 2.8.2 (with Kafka 2 Operator) | ZooKeeper & KRaft   | 1.25+               |
 
 ### ACP Version Compatibility
 
@@ -38,7 +38,7 @@ The Kylin arm64 cluster was managed from a separate `global` cluster running Red
 <Directive type="tip" title="Important Notes">
 - **v4.2.x and later only support KRaft mode**: ZooKeeper mode has been completely removed. All instances must be running in KRaft mode before upgrading to v4.2.x or later.
 - **Migration requirement**: If you have instances in ZooKeeper mode, you must migrate them to KRaft mode using the v4.1.x operator before upgrading to v4.2.x or later.
-- **Kafka 2 plugin is no longer supported**: v4.2.x and later do not support the Alauda build of Kafka 2 plugin or Kafka 2.x instances.
+- **Kafka 2 Operator is no longer supported**: v4.2.x and later do not support the Alauda build of Kafka 2 Operator or Kafka 2.x instances.
 - **Kafka 4.2.0 requires Alauda Container Platform Data Services RDS Framework 4.2.2 or later**: Upgrade RDS Framework before rolling Kafka instances to Kafka 4.2.0.
 - **Irreversible**: Once migrated to KRaft mode, rolling back to ZooKeeper mode is not supported.
 </Directive>
@@ -77,11 +77,11 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 - **Example**:
   - Alauda Streaming Service for Kafka `4.3.x` supports Kafka `4.2.0`.
   - Alauda Streaming Service for Kafka `4.2.x` supports Kafka `4.1.2`.
-  - Alauda Streaming Service for Kafka `4.1.x` supports Kafka `3.8.1` or Kafka `2.8.2` (with plugin).
+  - Alauda Streaming Service for Kafka `4.1.x` supports Kafka `3.8.1` or Kafka `2.8.2` (with the Kafka 2 Operator).
 
 ### Special Note for v4.2.x and Later Upgrades
 - **KRaft Mode Requirement**: All instances must be in KRaft mode before upgrading to v4.2.x or later.
-- **Kafka 2 Plugin Removal**: Kafka 2.x instances and the Alauda build of Kafka 2 plugin are not supported in v4.2.x or later.
+- **Kafka 2 Operator Removal**: Kafka 2.x instances and the Alauda build of Kafka 2 Operator are not supported in v4.2.x or later.
 - **Migration Path**: If you have instances in ZooKeeper mode:
   1. Stay on v4.1.x operator
   2. Migrate all instances to KRaft mode using the migration procedure
