@@ -18,11 +18,11 @@ The table below lists supported versions of the Alauda Streaming Service for Kaf
 
 | Alauda Kafka Version |  Kafka Versions                | Kubernetes Versions |
 |:--------------------:|:------------------------------:|:-------------------:|
-| v4.1.x               | 3.8.1, 2.8.2 (with plugin)     | 1.25+               |
-| v4.0.x               | 3.8.1, 2.8.2 (with plugin)     | 1.25+               |
+| v4.1.x               | 3.8.1, 2.8.2 (with Kafka 2 Operator) | 1.25+               |
+| v4.0.x               | 3.8.1, 2.8.2 (with Kafka 2 Operator) | 1.25+               |
 
 :::tip Optional Deployment
-For versions that support Kafka 2 (marked as *with plugin* in the table), you can manage Kafka 2.x instances by installing the Alauda build of the Kafka 2 plugin.
+For versions that support Kafka 2 (marked as *with Kafka 2 Operator* in the table), you can manage Kafka 2.x instances by installing the Alauda build of the Kafka 2 Operator.
 :::
 
 ## Prerequisites
@@ -47,7 +47,7 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 
 ### Kafka Version Alignment
 - **Description**: Ensure Kafka version upgrades follow the operator's compatibility matrix.
-- **Example**: Alauda Streaming Service for Kafka `4.1.0` supports Kafka `3.8.1` or Kafka `2.8.2` (with plugin).
+- **Example**: Alauda Streaming Service for Kafka `4.1.0` supports Kafka `3.8.1` or Kafka `2.8.2` (with the Kafka 2 Operator).
 
 ## Upgrade strategy
 
