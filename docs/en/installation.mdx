@@ -64,17 +64,7 @@ The plugin is a fundamental component of Alauda Application Services graphical i
 
 ## Installing the Alauda Streaming Service for Kafka Plugin
 
-### Validated Platform Combinations
-
-Alauda Streaming Service for Kafka v4.3.5 was validated on ACP 4.5.0 with Kafka 4.2.0. Fresh-install validation used IPv4 networking and the following Kafka cluster configurations:
-
-| Kafka Cluster Operating System | Architecture | Persistent Storage |
-|---|---|---|
-| SUSE Linux Enterprise Micro 5.5 | amd64 | Ceph RBD |
-| Kylin Linux Advanced Server V11 (Swan25) | arm64 | TopoLVM |
-| Ubuntu 22.04.1 LTS | amd64 | TopoLVM |
-
-The Kylin arm64 cluster was managed from a separate `global` cluster running Red Hat Enterprise Linux 9.6 (Plow) on amd64. The Ubuntu configuration hosted the platform and Kafka in the same Kubernetes cluster.
+Check the [ACP version compatibility matrix](./upgrade.mdx#acp-version-compatibility) for the validated plugin, ACP, and Kafka versions and their deployment configurations.
 
 ### Prerequisites
 
