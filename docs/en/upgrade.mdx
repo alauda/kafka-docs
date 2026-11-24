@@ -23,6 +23,18 @@ The table below lists supported versions of the Alauda Streaming Service for Kaf
 | v4.1.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
 | v4.0.x               | 3.8.1, 2.8.2 (with plugin)     | ZooKeeper & KRaft   | 1.25+               |
 
+### ACP Version Compatibility
+
+The following plugin, ACP, and Kafka version combinations have been validated for new deployments using IPv4 networking:
+
+| Alauda Kafka Version | ACP Version | Kafka Version | Kafka Cluster Operating System | Architecture | Persistent Storage |
+|---|---|---|---|---|---|
+| v4.3.5 | 4.5.0 | 4.2.0 | SUSE Linux Enterprise Micro 5.5 | amd64 | Ceph RBD |
+| v4.3.5 | 4.5.0 | 4.2.0 | Kylin Linux Advanced Server V11 (Swan25) | arm64 | TopoLVM |
+| v4.3.5 | 4.5.0 | 4.2.0 | Ubuntu 22.04.1 LTS | amd64 | TopoLVM |
+
+The Kylin arm64 cluster was managed from a separate `global` cluster running Red Hat Enterprise Linux 9.6 (Plow) on amd64. The Ubuntu configuration hosted the platform and Kafka in the same Kubernetes cluster.
+
 <Directive type="tip" title="Important Notes">
 - **v4.2.x and later only support KRaft mode**: ZooKeeper mode has been completely removed. All instances must be running in KRaft mode before upgrading to v4.2.x or later.
 - **Migration requirement**: If you have instances in ZooKeeper mode, you must migrate them to KRaft mode using the v4.1.x operator before upgrading to v4.2.x or later.
