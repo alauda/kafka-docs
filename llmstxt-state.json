@@ -220,11 +220,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/installation.mdx": {
-      "sha256": "3a8afe860d53157db3bfc3b3d4e6ccb7bd7107ffc26e388fd1abe0b5ecaa9ede",
-      "size": 6217,
-      "description": "Install guide for the platform plugins that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), the Alauda Streaming Service for Kafka plugin (the core operator, installed via OperatorHub with stable channel and Cluster installation mode), and the optional Alauda build of Kafka 2 plugin for managing 2.x version instances. Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
+      "sha256": "94a7d4887396240ee535a5e0b2cd3d01334555a9c957212ac1da1eb424036e6b",
+      "size": 4582,
+      "description": "Install guide for the platform plugins that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), and the Alauda Streaming Service for Kafka plugin (the core operator, installed via OperatorHub with stable channel and Cluster installation mode). Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-24T08:01:31Z"
     },
     "docs/en/intro.mdx": {
       "sha256": "ba48a61662e7ab7f13b2655487054c1ec8127235ff13e50161890b7490bdb17c",
