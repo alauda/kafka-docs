@@ -11,7 +11,7 @@ When business applications access Kafka instances, there are multiple connection
 
 When creating a Kafka instance, the server will provide various combinations of access links, with relevant parameter descriptions:
 
-- **Internal/External Access**: Whether the application and Kafka server are within the same business cluster.
+- **Internal/External Access**: Whether the application and Kafka server are within the same workload cluster.
 - **Authentication Mechanism**: Whether authentication is enabled for client identity verification. The authentication mechanisms support SCRAM-SHA-512 and TLS protocols (Note: the TLS authentication mechanism only supports being enabled over a TLS encrypted transmission link).
 - **Transport Encryption**: Ensures the security of data during transmission, using data encryption technology to prevent data from being intercepted or eavesdropped during network transmission. The transport encryption protocol is typically TLS.
 
@@ -48,7 +48,7 @@ We demonstrate several typical access links (Java client), where other combinati
 
 ### 1. Internal Access - Without Authentication, Non-encrypted Transmission
 
-At this point, the client and Kafka instance are located in the same business cluster. Since the Kafka server has not enabled authentication, the transmission process does not require encryption. The client only needs to obtain the internal route of the Kafka instance.
+At this point, the client and Kafka instance are located in the same workload cluster. Since the Kafka server has not enabled authentication, the transmission process does not require encryption. The client only needs to obtain the internal route of the Kafka instance.
 
 You can copy the connection address for "Access within the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
 
@@ -86,7 +86,7 @@ public class ExampleProducer {
 
 ### 2. Internal Access - With Authentication (TLS Protocol), Encrypted Transmission
 
-At this point, the client and Kafka instance are located within the same business cluster. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the internal route address of the Kafka instance, the user and password certificate for the TLS protocol, and the transmission certificate.
+At this point, the client and Kafka instance are located within the same workload cluster. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the internal route address of the Kafka instance, the user and password certificate for the TLS protocol, and the transmission certificate.
 
 1. Internal route address of the Kafka instance
 
@@ -166,7 +166,7 @@ At this point, the client and Kafka instance are located within the same busines
 
 ### 3. External Access - With Authentication (SCRAM-SHA-512 Protocol), Non-encrypted Transmission
 
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process does not require encryption. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol.
+At this point, the client and Kafka instance are located in different workload clusters. Since the Kafka server has enabled authentication, the transmission process does not require encryption. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol.
 
 1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
 
@@ -210,7 +210,7 @@ At this point, the client and Kafka instance are located in different business c
 
 ### 4. External Access - With Authentication (SCRAM-SHA-512 Protocol), Encrypted Transmission
 
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, username and password under the SCRAM-SHA-512 protocol, as well as the TLS protocol transmission certificate.
+At this point, the client and Kafka instance are located in different workload clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, username and password under the SCRAM-SHA-512 protocol, as well as the TLS protocol transmission certificate.
 
 1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
 
@@ -271,7 +271,7 @@ At this point, the client and Kafka instance are located in different business c
 
 ### External Access - With Authentication (TLS Protocol), Encrypted Transmission
 
-At this point, the client and Kafka instance are located in different business clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol, and the TLS protocol transmission certificate.
+At this point, the client and Kafka instance are located in different workload clusters. Since the Kafka server has enabled authentication, the transmission process needs to be encrypted. The client needs to obtain the external access address of the Kafka instance, along with the username and password under the SCRAM-SHA-512 protocol, and the TLS protocol transmission certificate.
 
 1. You can copy the connection address for "Access from outside the Cluster - Plain Transmission" under the 【Kafka Instance - Access Method】 tab and replace it in the actual code snippet.
 
