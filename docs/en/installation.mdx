@@ -12,7 +12,7 @@ title: Install
 ## Installing Alauda Container Platform Data Services Essentials
 
 ::: tip Optional Deployment
-The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
+The Cluster Plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
 :::
 
 ### Prerequisites
@@ -26,14 +26,14 @@ The plugin is a fundamental component of Alauda Application Services graphical i
   <Tab label="Web Console">
     1. In the left navigation bar, go to **Marketplace** > **Cluster Plugins**.
     2. Select the `global` cluster.
-    3. Click the operation button next to the **Alauda Container Platform Data Services Essentials** plugin > **Install**.
+    3. Click the operation button next to the **Alauda Container Platform Data Services Essentials** Cluster Plugin > **Install**.
   </Tab>
 </Tabs>
 
 ## Installing Alauda Container Platform Data Services RDS Framework
 
 ::: tip Optional Deployment
-The plugin is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
+The Operator is a fundamental component of Alauda Application Services graphical interface; it can be omitted if web console are not required.
 :::
 
 ### Prerequisites
@@ -62,16 +62,16 @@ The plugin is a fundamental component of Alauda Application Services graphical i
   </Tab>
 </Tabs>
 
-## Installing the Alauda Streaming Service for Kafka Plugin
+## Installing the Alauda Streaming Service for Kafka Operator
 
 :::tip Optional Deployment
-This plugin manages Kafka instances for versions `3.x`; if you need to manage `2.x` instances, the Alauda build of Kafka 2 plugin must be installed additionally.
+This Operator manages Kafka instances for versions `3.x`; if you need to manage `2.x` instances, the Alauda build of Kafka 2 Operator must be installed additionally.
 :::
 
 ### Prerequisites
 
-1. Download the plugin installation package that matches your platform.
-2. Use the platform's application listing capability to list the plugin in any cluster where you wish to use Alauda Streaming Service for Kafka capabilities.
+1. Download the Operator installation package that matches your platform.
+2. Use the platform's application listing capability to list the Operator in any cluster where you wish to use Alauda Streaming Service for Kafka capabilities.
 
 ### Procedure
 
@@ -96,20 +96,20 @@ This plugin manages Kafka instances for versions `3.x`; if you need to manage `2
 
 
 
-## Installing the Alauda build of Kafka 2 Plugin
+## Installing the Alauda build of Kafka 2 Operator
 
 :::tip Optional Deployment
-This plugin manages Kafka instances for versions `2.x`; it can be omitted if `2.x` version instances are not required.
+This Operator manages Kafka instances for versions `2.x`; it can be omitted if `2.x` version instances are not required.
 :::
 
 ### Prerequisites
 
-1. Download the plugin installation package that matches your platform.
-2. Use the platform's application listing capability to list the plugin in any cluster where you wish to use Alauda build of Kafka 2 capabilities.
-3. Ensure that the Alauda Streaming Service for Kafka Plugin is installed.
+1. Download the Operator installation package that matches your platform.
+2. Use the platform's application listing capability to list the Operator in any cluster where you wish to use Alauda build of Kafka 2 capabilities.
+3. Ensure that the Alauda Streaming Service for Kafka Operator is installed.
 
-:::note Uploading the Kafka 2 plugin package
-The Alauda build of Kafka 2 plugin package must be uploaded to the platform with the `violet` command-line tool at version **4.1 or earlier**. Version 4.1 and earlier verify the tool version against a ConfigMap on the `global` cluster before uploading, so `violet push` may fail with:
+:::note Uploading the Kafka 2 Operator package
+The Alauda build of Kafka 2 Operator package must be uploaded to the platform with the `violet` command-line tool at version **4.1 or earlier**. Version 4.1 and earlier verify the tool version against a ConfigMap on the `global` cluster before uploading, so `violet push` may fail with:
 
 `Failed to get supported version range: configmaps "violet-version-checker-config" not found`
 
