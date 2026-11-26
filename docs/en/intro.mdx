@@ -38,11 +38,11 @@ In terms of deployment modes, it supports:
    - Provides a comprehensive user authentication and authorization mechanism to strictly control access to the Kafka cluster for different users or applications, ensuring secure access to sensitive data.
 
 3. **Networking and Access Methods**
-   - Supports various Kubernetes service types, such as NodePort and LoadBalancer, allowing users to expose Kafka services to external applications based on their network architecture and business needs. Additionally, users can flexibly specify NodePort ports to meet specific network configuration requirements.
+   - Supports various Kubernetes service types, such as NodePort and LoadBalancer, allowing users to expose Kafka services to external applications based on their network architecture and application needs. Additionally, users can flexibly specify NodePort ports to meet specific network configuration requirements.
    - Fully compatible with both IPv4 and IPv6 network environments, adapting to different network scenarios, and ensuring stable operation in environments primarily using traditional IPv4 networks and those transitioning to IPv6 architectures.
 
 4. **Elastic Scaling**
-   - Supports online horizontal scaling, dynamically adding Kafka Broker nodes without service interruption to meet the changing business demands. For example, nodes can be added during peak business periods to enhance cluster processing capacity.
+   - Supports online horizontal scaling, dynamically adding Kafka Broker nodes without service interruption to meet the changing workload demands. For example, nodes can be added during peak periods to enhance cluster processing capacity.
    - Supports vertical resource adjustments, flexibly modifying CPU, memory, and other resource configurations of Kafka Broker nodes based on actual load conditions to optimize resource utilization.
 
 5. **Upgrade and High Availability**
@@ -50,9 +50,9 @@ In terms of deployment modes, it supports:
    - Utilizes a multi-replica mechanism to replicate data across multiple nodes, allowing automatic failover to other replicas when a node fails, ensuring high availability in production environments.
 
 6. **Custom Scheduling Policies**
-   - Supports Kubernetes' NodeSelector, Toleration, and Affinity scheduling policies, allowing users to flexibly control the scheduling logic of Kafka pods based on node labels, node characteristics, and business needs, thus deploying Kafka instances on the most suitable nodes to maximize cluster resources utilization.
+   - Supports Kubernetes' NodeSelector, Toleration, and Affinity scheduling policies, allowing users to flexibly control the scheduling logic of Kafka pods based on node labels, node characteristics, and workload needs, thus deploying Kafka instances on the most suitable nodes to maximize cluster resources utilization.
 
 7. **Automated Operation and Maintenance Capabilities**
    - **Rolling Scaling**: During scaling operations, a rolling method is used to gradually adjust the number of Kafka Broker nodes while automatically handling data redistribution and load balancing to ensure normal cluster operation and data consistency throughout the process.
-   - **Zero-Downtime Upgrades**: When upgrading Kafka versions or changing configurations, individual nodes are updated sequentially, synchronizing data and verifying the operating status of new nodes to maintain service continuity and avoid impacting business operations.
+   - **Zero-Downtime Upgrades**: When upgrading Kafka versions or changing configurations, individual nodes are updated sequentially, synchronizing data and verifying the operating status of new nodes to maintain service continuity and avoid impacting applications.
 
