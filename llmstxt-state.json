@@ -1,8 +1,8 @@
 {
   "version": 1,
   "generator_version": 3,
-  "project_name": "Alauda Kafka",
-  "summary": "Documentation for Alauda's Kafka platform — a Kubernetes-native managed Kafka offering with Kraft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations.",
+  "project_name": "Alauda Data Services Streaming E1 Docs",
+  "summary": "Documentation for Alauda Data Services Streaming E1, a Kubernetes-native managed Apache Kafka® offering with KRaft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations.",
   "generated_at": "2026-05-16T10:38:59Z",
   "include_patterns": [
     "**/*.md",
@@ -82,7 +82,7 @@
     "docs/en/architecture.mdx": {
       "sha256": "af75aa2f2661aeaebc7a1e9221f6df21c6878f13f785b18bbbd3bb534b1fcf4f",
       "size": 1427,
-      "description": "Architecture overview of Alauda Streaming Service for Kafka, focusing on KRaft mode. It explains how Kafka's native Raft consensus replaces ZooKeeper, and enumerates KRaft benefits: simplified architecture, scaling to millions of partitions, sub-second controller failover, linearizable metadata consistency, and support for both combined (broker+controller) and dedicated deployment modes.",
+      "description": "Architecture overview of Alauda Data Services Streaming E1, focusing on KRaft mode. It explains how Kafka's native Raft consensus replaces ZooKeeper, and enumerates KRaft benefits: simplified architecture, scaling to millions of partitions, sub-second controller failover, linearizable metadata consistency, and support for both combined (broker+controller) and dedicated deployment modes.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
@@ -131,7 +131,7 @@
     "docs/en/functions/60-scheduling.mdx": {
       "sha256": "12baf7fc4c12e23e1c5f828b56f8d5030d8b199593c97d7d5b7f301eef5bfdb7",
       "size": 1162,
-      "description": "Walks through updating an existing Kafka instance's Pod tolerations via the Web Console (Kafka > namespace > instance > Actions > Update Scheduling Configuration) when node taints change. Stresses that Pod migration is not supported, so the new tolerated node set must be a superset of the original, and that when node labels are used, matching node count must remain at least the replica count.",
+      "description": "Walks through updating an existing Kafka instance's Pod tolerations via the Web Console (Alauda Data Services Streaming E1 > namespace > instance > Actions > Update Scheduling Configuration) when node taints change. Stresses that Pod migration is not supported, so the new tolerated node set must be a superset of the original, and that when node labels are used, matching node count must remain at least the replica count.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
@@ -222,35 +222,35 @@
     "docs/en/installation.mdx": {
       "sha256": "a85e8dfc51dba7767f06c6713bdbd9c5cad0da6132ff0b9df41361d25248db43",
       "size": 4432,
-      "description": "Install guide for the Extensions that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), and the Alauda Streaming Service for Kafka Operator (the core operator, installed via OperatorHub with stable channel and Cluster installation mode). Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
+      "description": "Install guide for the Extensions that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), and the Alauda Data Services Streaming E1 Operator (the core operator, installed via OperatorHub with stable channel and Cluster installation mode). Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-11-25T00:00:00Z"
     },
     "docs/en/intro.mdx": {
       "sha256": "ba48a61662e7ab7f13b2655487054c1ec8127235ff13e50161890b7490bdb17c",
       "size": 4878,
-      "description": "Introduces Apache Kafka (distributed stream processing platform with Producers, Consumers, Topics, Brokers; partitioning and replication for reliability) and the Alauda Streaming Service for Kafka — a Kubernetes-native operator that manages the full Kafka lifecycle declaratively. Enumerates key product features: KRaft mode support (combined or dedicated controller roles, faster failover), TLS encryption and user authentication/authorization, NodePort/LoadBalancer access with IPv4/IPv6 support, horizontal Broker scaling and vertical CPU/memory adjustment, smooth version upgrades with multi-replica HA, NodeSelector/Toleration/Affinity scheduling, and automated rolling scaling and zero-downtime upgrades.",
+      "description": "Introduces Apache Kafka (distributed stream processing platform with Producers, Consumers, Topics, Brokers; partitioning and replication for reliability) and the Alauda Data Services Streaming E1 — a Kubernetes-native operator that manages the full Kafka lifecycle declaratively. Enumerates key product features: KRaft mode support (combined or dedicated controller roles, faster failover), TLS encryption and user authentication/authorization, NodePort/LoadBalancer access with IPv4/IPv6 support, horizontal Broker scaling and vertical CPU/memory adjustment, smooth version upgrades with multi-replica HA, NodeSelector/Toleration/Affinity scheduling, and automated rolling scaling and zero-downtime upgrades.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/lifecycle_policy.mdx": {
       "sha256": "a0aff7b2bbef0f01f1be77e5795389d5e99c8109bfcc79e0f53df98771616db9",
       "size": 1758,
-      "description": "Publishes the version lifecycle timeline and rolling support model for Alauda Streaming Service for Kafka, listing release dates and end-of-support windows for v4.1.x (2025-08-18) and v4.2.x (2026-02-06), where each minor version is supported until one month after the next minor release. Documents the maintenance services Alauda provides during a version's support window: security updates, bug fixes aligned with upstream Kafka community fixes, upgrade assistance, and regular operator maintenance for Kubernetes compatibility.",
+      "description": "Publishes the version lifecycle timeline and rolling support model for Alauda Data Services Streaming E1, listing release dates and end-of-support windows for v4.1.x (2025-08-18) and v4.2.x (2026-02-06), where each minor version is supported until one month after the next minor release. Documents the maintenance services Alauda provides during a version's support window: security updates, bug fixes aligned with upstream Kafka community fixes, upgrade assistance, and regular operator maintenance for Kubernetes compatibility.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/release_notes.mdx": {
       "sha256": "e89b58211488881f46a229a82ca201bb72beaaa10820123bfe9814412507741e",
       "size": 2673,
-      "description": "Per-version changelog for Alauda Streaming Service for Kafka covering v4.0.0 through v4.2.0. Highlights include v4.2.0 adopting community Kafka 4.1.1 by default and completely removing ZooKeeper mode (KRaft-only, requiring pre-upgrade migration via the v4.1.x operator) plus Kubernetes security hardening; v4.1.0 adding MirrorMaker 2-based data transfer with monitoring/alerting and initial KRaft instance creation for 3.x; and v4.0.0 decoupling the component lifecycle from the platform, adding real-time component logs, and introducing LoadBalancer-type external access (recommended with MetalLB over NodePort for production).",
+      "description": "Per-version changelog for Alauda Data Services Streaming E1 covering v4.0.0 through v4.2.0. Highlights include v4.2.0 adopting community Kafka 4.1.1 by default and completely removing ZooKeeper mode (KRaft-only, requiring pre-upgrade migration via the v4.1.x operator) plus Kubernetes security hardening; v4.1.0 adding MirrorMaker 2-based data transfer with monitoring/alerting and initial KRaft instance creation for 3.x; and v4.0.0 decoupling the component lifecycle from the platform, adding real-time component logs, and introducing LoadBalancer-type external access (recommended with MetalLB over NodePort for production).",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/upgrade.mdx": {
       "sha256": "97e3082ed2881b84a0c2f8517a2aca23da29655e959b0a7737ba9c7db3cdaa4f",
       "size": 3923,
-      "description": "Upgrade-path guide for Alauda Streaming Service for Kafka, presenting the compatibility matrix that maps operator versions (v4.0.x, v4.1.x, v4.2.x) to supported Kafka versions (4.1.1; 3.8.1; 2.8.2 with plugin), KRaft/ZooKeeper mode support, and minimum Kubernetes versions (1.25+/1.27+). Documents prerequisites including verifying every rdskafka instance has `spec.mode: KRaft` via a `kubectl get rdskafka -A` custom-columns query, the mandatory ZooKeeper-to-KRaft migration through the v4.1.x operator before moving to v4.2.x (no rollback), and the recommended consecutive minor-version upgrade path. Also describes the Automatic vs. Manual upgrade strategies the operator honors when new component versions are detected.",
+      "description": "Upgrade-path guide for Alauda Data Services Streaming E1, presenting the compatibility matrix that maps operator versions (v4.0.x, v4.1.x, v4.2.x) to supported Kafka versions (4.1.1; 3.8.1; 2.8.2 with plugin), KRaft/ZooKeeper mode support, and minimum Kubernetes versions (1.25+/1.27+). Documents prerequisites including verifying every rdskafka instance has `spec.mode: KRaft` via a `kubectl get rdskafka -A` custom-columns query, the mandatory ZooKeeper-to-KRaft migration through the v4.1.x operator before moving to v4.2.x (no rollback), and the recommended consecutive minor-version upgrade path. Also describes the Automatic vs. Manual upgrade strategies the operator honors when new component versions are detected.",
       "generation_method": "ai_agent_reading",
       "updated_at": "2026-05-16T10:38:59Z"
     }

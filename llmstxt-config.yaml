@@ -1,6 +1,29 @@
 # llms.txt generator configuration for alauda/kafka-docs
-project_name: "Alauda Kafka"
-summary: "Documentation for Alauda's Kafka platform — a Kubernetes-native managed Kafka offering with Kraft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations."
+project_name: "Alauda Data Services Streaming E1 Docs"
+summary: "Documentation for Alauda Data Services Streaming E1, a Kubernetes-native managed Apache Kafka® offering with KRaft mode, MirrorMaker 2 data sync, role-based access, monitoring, and lifecycle operations."
+body: |
+  This index covers user-facing documentation under docs/en/ for managing
+  Alauda Data Services Streaming E1 instances on Alauda Container Platform: installation,
+  architecture, Kubernetes API references, function guides, how-to guides,
+  upgrades and lifecycle policy.
+
+  Apache®, Apache Kafka®, and the Apache Kafka logo are either registered
+  trademarks or trademarks of The Apache Software Foundation in the United
+  States and/or other countries.
+
+  Apache®, Apache ZooKeeper™, and the Apache ZooKeeper logo are either registered
+  trademarks or trademarks of The Apache Software Foundation in the United
+  States and/or other countries.
+
+  Alauda is an independent vendor. This product is not affiliated with,
+  endorsed by, or sponsored by The Apache Software Foundation. All trademarks
+  are the property of their respective owners and are used here for
+  identification purposes only.
+
+  Apache Kafka project: https://kafka.apache.org/ · The Apache Software
+  Foundation: https://www.apache.org/
+
+  Report bugs and security issues: https://cloud.alauda.io/errata
 
 include_patterns:
   - "**/*.md"

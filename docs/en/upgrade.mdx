@@ -9,12 +9,12 @@ i18n:
 
 <Directive type="note">
 
-This document provides the upgrade path principles and supported version compatibility for Alauda Streaming Service for Kafka.
+This document provides the upgrade path principles and supported version compatibility for Alauda Data Services Streaming E1.
 </Directive>
 
 ## Compatibility Matrix
 
-The table below lists supported versions of the Alauda Streaming Service for Kafka and its key components:
+The table below lists supported versions of the Alauda Data Services Streaming E1 and its key components:
 
 | Alauda Kafka Version |  Kafka Versions                | Mode Support        | Kubernetes Versions |
 |:--------------------:|:------------------------------:|:-------------------:|:-------------------:|
@@ -63,9 +63,9 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 ### Kafka Version Alignment
 - **Description**: Ensure Kafka version upgrades follow the operator's compatibility matrix.
 - **Example**:
-  - Alauda Streaming Service for Kafka `4.3.x` supports Kafka `4.2.0`.
-  - Alauda Streaming Service for Kafka `4.2.x` supports Kafka `4.1.2`.
-  - Alauda Streaming Service for Kafka `4.1.x` supports Kafka `3.8.1` or Kafka `2.8.2` (with the Kafka 2 Operator).
+  - Alauda Data Services Streaming E1 `4.3.x` supports Kafka `4.2.0`.
+  - Alauda Data Services Streaming E1 `4.2.x` supports Kafka `4.1.2`.
+  - Alauda Data Services Streaming E1 `4.1.x` supports Kafka `3.8.1` or Kafka `2.8.2` (with the Kafka 2 Operator).
 
 ### Special Note for v4.2.x and Later Upgrades
 - **KRaft Mode Requirement**: All instances must be in KRaft mode before upgrading to v4.2.x or later.
@@ -84,7 +84,7 @@ For version-specific changes, new features, and deprecations, see the 📝 **[Re
 
 ## Upgrade strategy
 
-Alauda Streaming Service for Kafka will execute upgrades based on the configured upgrade strategy:
+Alauda Data Services Streaming E1 will execute upgrades based on the configured upgrade strategy:
 
 * **Automatic** : Auto-upgrades are triggered immediately upon detecting new component versions.
 * **Manual** : Requires manual approval before initiating the upgrade process.
