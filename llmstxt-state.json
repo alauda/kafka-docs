@@ -122,11 +122,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/functions/40-parameter.mdx": {
-      "sha256": "29d3d26c6ecb7141eeecd62e7f46028dbbf4ac0c400190f4213af73fb3cbfcff",
-      "size": 13364,
+      "sha256": "8630e3ec4bbe018f3d20f0330d5eb7a9f63bdd8cf15e6724e2e32ccd180fcc0b",
+      "size": 13360,
       "description": "Reference for the broker `spec.config` keys exposed via the parameter template. Demonstrates updates with `kubectl patch rdskafka <name> --type=merge --patch='{\"spec\":{\"config\":{\"auto.create.topics.enable\":\"true\"}}}'` and the Web Console's Update Parameters tab, lists prefixes blocked for safety (`advertised.`, `authorizer.`, `broker.`, `controller`, `listener.`, `log.dir`, `sasl.`, `security.`, `ssl.`, `super.user`, etc.), and includes a table of dozens of supported keys with types, defaults, and ranges (e.g. `compression.type`, `log.retention.hours`, `min.insync.replicas`, `num.io.threads`, `offsets.topic.replication.factor`, `unclean.leader.election.enable`).",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-26T18:04:28Z"
     },
     "docs/en/functions/60-scheduling.mdx": {
       "sha256": "12baf7fc4c12e23e1c5f828b56f8d5030d8b199593c97d7d5b7f301eef5bfdb7",
@@ -157,11 +157,11 @@
       "updated_at": "2026-11-25T00:00:00Z"
     },
     "docs/en/functions/90-restart.mdx": {
-      "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
-      "size": 1110,
+      "sha256": "f4fef235f49b171daad7c4fea9b8f43e8514dc7cb7ca9c09220fbb9685a6e042",
+      "size": 1106,
       "description": "Explains restarting a Kafka instance from Actions > Restart in the Web Console to recover from runtime failures, excessive connections, or unknown issues. Notes the Pods are restarted one by one (causing brief interruption), requires Running state to initiate manually, and clarifies that Processing/Error states will auto-restart after the health-check timeout.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-26T18:04:28Z"
     },
     "docs/en/functions/index.mdx": {
       "sha256": "2b06eee638164461681d2d8279217d76f835de7521989e620cff096cc38a5a5e",
@@ -171,11 +171,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/how_to/10-spec-scaling.mdx": {
-      "sha256": "5653eec3c7f2d48ce5b2bd3c71c84fdf2b4e28788fd7506afd946b4408112515",
+      "sha256": "abc1c00395b9234f67a239b9403bf2b11cfe26aa09cc154b3d487cee7fe4b1d4",
       "size": 2478,
       "description": "How-to for changing a Kafka instance's specifications and replica count, either via Web Console (Details tab > Specification Changes above the topology) or by patching the RDSKafka CR's `spec.resources` with `kubectl patch rdskafka`. Highlights restrictions: replica changes must respect existing scheduling settings, all Brokers should be scaled to the same specification to avoid storage imbalance requiring data migration, and CPU/memory changes must match real capacity to prevent startup failures.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-26T18:04:28Z"
     },
     "docs/en/how_to/20-connect.mdx": {
       "sha256": "cc5b72093ed85276dd8d324d892a2080db2744d4b968d26252041ab5f2a188f0",
@@ -199,11 +199,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/how_to/50-migrate-to-kraft.mdx": {
-      "sha256": "bb0193a8d1d86a44facecdd350b52a9c561c89a7ca17a7f6550a17156bb09a2f",
-      "size": 3688,
+      "sha256": "f62968fb90ec70e68a591ecc98663f755cbd2b38693234f7b8c025c01036ded0",
+      "size": 3683,
       "description": "Step-by-step CLI migration of a Kafka instance from ZooKeeper to KRaft mode using `kubectl patch rdsKafka <name> --type=merge -p '{\"spec\":{\"mode\":\"KRaft\"}}'`, monitored via `.status.phase` transitions (Migrating > Active). Stresses that v4.2.x operator only supports KRaft and migration must complete on v4.1.x, requires Kafka 3.8+, is irreversible, may cause temporary service interruption, and changes Pod/svc names so clients not using the `bootstrap` or `external-bootstrap` services must update connection addresses; recommends post-migration connectivity, data-integrity, and controller-performance checks.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-26T18:04:28Z"
     },
     "docs/en/how_to/index.mdx": {
       "sha256": "495064ba49578a1a40029200fee9765fdcc135e4e6fc4b45d1873c7f56b7aa32",
@@ -227,11 +227,11 @@
       "updated_at": "2026-11-25T00:00:00Z"
     },
     "docs/en/intro.mdx": {
-      "sha256": "ba48a61662e7ab7f13b2655487054c1ec8127235ff13e50161890b7490bdb17c",
-      "size": 4878,
+      "sha256": "03651ebc2a4d59996207b451d7a7b2f479c68387831e072500178324c6b34849",
+      "size": 4865,
       "description": "Introduces Apache Kafka (distributed stream processing platform with Producers, Consumers, Topics, Brokers; partitioning and replication for reliability) and the Alauda Streaming Service for Kafka — a Kubernetes-native operator that manages the full Kafka lifecycle declaratively. Enumerates key product features: KRaft mode support (combined or dedicated controller roles, faster failover), TLS encryption and user authentication/authorization, NodePort/LoadBalancer access with IPv4/IPv6 support, horizontal Broker scaling and vertical CPU/memory adjustment, smooth version upgrades with multi-replica HA, NodeSelector/Toleration/Affinity scheduling, and automated rolling scaling and zero-downtime upgrades.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-05-16T10:38:59Z"
+      "updated_at": "2026-11-26T18:04:28Z"
     },
     "docs/en/lifecycle_policy.mdx": {
       "sha256": "a0aff7b2bbef0f01f1be77e5795389d5e99c8109bfcc79e0f53df98771616db9",
