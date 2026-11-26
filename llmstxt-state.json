@@ -150,11 +150,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/functions/85-start-stop.mdx": {
-      "sha256": "6a390135320a225b61c3008e0a28f56d878dd7ca04c1e39cc91ae2a131e635e4",
-      "size": 2498,
-      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page. The feature is limited to Kafka 2.x instances managed by the optional Alauda build of Kafka 2 plugin, supporting versions 2.5.0, 2.7.0, and 2.8.2; Kafka 4.x instances do not support start and stop operations. It also lists required states and the features disabled while stopped.",
+      "sha256": "123d2956cff9b928aaca7619e0d0ee14df5ea6589ffc7187643c5aded511511b",
+      "size": 2500,
+      "description": "Documents the one-click Stop and Start operations under Actions on the instance details page. The feature is limited to Kafka 2.x instances managed by the optional Alauda build of Kafka 2 Operator, supporting versions 2.5.0, 2.7.0, and 2.8.2; Kafka 4.x instances do not support start and stop operations. It also lists required states and the features disabled while stopped.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-06-02T00:00:00Z"
+      "updated_at": "2026-11-25T00:00:00Z"
     },
     "docs/en/functions/90-restart.mdx": {
       "sha256": "e0fc8867eea4fdb375a70427111860b5689e1902c8891b74ee834a8076b0a674",
@@ -220,11 +220,11 @@
       "updated_at": "2026-05-16T10:38:59Z"
     },
     "docs/en/installation.mdx": {
-      "sha256": "94a7d4887396240ee535a5e0b2cd3d01334555a9c957212ac1da1eb424036e6b",
-      "size": 4582,
-      "description": "Install guide for the platform plugins that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), and the Alauda Streaming Service for Kafka plugin (the core operator, installed via OperatorHub with stable channel and Cluster installation mode). Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
+      "sha256": "bae04b8ebda76e7094e65f541e091807c70b20c6baf19e1ff079e3061945da72",
+      "size": 4606,
+      "description": "Install guide for the Extensions that underpin the Kafka offering, in order: Alauda Container Platform Data Services Essentials and RDS Framework (optional UI prerequisites for the graphical console), and the Alauda Streaming Service for Kafka Operator (the core operator, installed via OperatorHub with stable channel and Cluster installation mode). Lists recommended Upgrade Strategy, Installation Mode, Channel, and Namespace settings for each OperatorHub install.",
       "generation_method": "ai_agent_reading",
-      "updated_at": "2026-11-24T08:01:31Z"
+      "updated_at": "2026-11-25T00:00:00Z"
     },
     "docs/en/intro.mdx": {
       "sha256": "ba48a61662e7ab7f13b2655487054c1ec8127235ff13e50161890b7490bdb17c",
